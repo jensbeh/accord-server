@@ -6,8 +6,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class RestServerAccordApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(RestServerAccordApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(RestServerAccordApplication.class, args);
+        System.out.println("SpringApplication started!");
+    }
 
 }
