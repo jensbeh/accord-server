@@ -1,18 +1,26 @@
 package com.accordserver.accessingdatamysql;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import org.hibernate.annotations.GenericGenerator;
 
-@Entity // @Entity tells Hibernate to make a table out of this class. Hibernate automatically translates the entity into a table.
+import javax.persistence.*;
+
+@Entity
+// @Entity tells Hibernate to make a table out of this class. Hibernate automatically translates the entity into a table.
 public class User {
-
-    @Id // main key/id of the table. This both is only for variable "id".
+    // main key/id of the table. This both is only for variable "id".
+    @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
+
     private String name;
     private String password;
+    private boolean online;
+
+    // settings for userKey
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(columnDefinition = "VARCHAR(36)")
+    private String userKey;
 
     /**
      * The default constructor exists only for the sake of JPA/MySQL. You do not use it directly, so it is designated as protected.
@@ -31,10 +39,13 @@ public class User {
     @Override
     public String toString() {
         return String.format(
-                "Customer[id=%d, name='%s', password='%s']",
+                "User[id=%d, name='%s', password='%s']",
                 id, name, password);
     }
 
+    /**
+     * Getter and Setter are needed to return an auto-generated answer to the Rest-call
+     */
     public int getId() {
         return id;
     }
@@ -45,5 +56,23 @@ public class User {
 
     public String getPassword() {
         return password;
+    }
+
+    public boolean isOnline() {
+        return online;
+    }
+
+    public User setOnline(boolean online) {
+        this.online = online;
+        return this;
+    }
+
+    public String getUserKey() {
+        return userKey;
+    }
+
+    public User setUserKey(String userKey) {
+        this.userKey = userKey;
+        return this;
     }
 }
