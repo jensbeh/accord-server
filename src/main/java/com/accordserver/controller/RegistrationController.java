@@ -1,6 +1,5 @@
 package com.restserveraccord.controller;
 
-import com.restserveraccord.model.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,15 +12,15 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RestController
 public class RegistrationController {
     @RequestMapping(method = RequestMethod.POST, value = "/register", produces = APPLICATION_JSON_VALUE)
-    public User register(@RequestBody User user) { // Userdata
-
-        boolean usernameAlreadyExists = true;
-        if(usernameAlreadyExists) {
-            throw new IllegalArgumentException("error.username");
-        }
-
-        return null; //new UserData(...);
-    }
+//    public User register(@RequestBody User user) { // Userdata
+//
+//        boolean usernameAlreadyExists = true;
+//        if(usernameAlreadyExists) {
+//            throw new IllegalArgumentException("error.username");
+//        }
+//
+//        return null; //new UserData(...);
+//    }
 
     @ExceptionHandler
     void handleIllegalArgumentException(

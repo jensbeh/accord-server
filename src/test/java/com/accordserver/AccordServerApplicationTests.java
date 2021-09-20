@@ -1,10 +1,10 @@
-package com.restserveraccord;
+package com.accordserver;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class RestServerAccordApplicationTests {
+class AccordServerApplicationTests {
 
 	@Test
 	void contextLoads() {
