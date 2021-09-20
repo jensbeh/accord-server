@@ -1,8 +1,11 @@
-package com.accordserver.accessingdatamysql;
+package com.accordserver.accessingdatamysql.user;
 
+import com.accordserver.accessingdatamysql.server.Server;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 // @Entity tells Hibernate to make a table out of this class. Hibernate automatically translates the entity into a table.
@@ -21,6 +24,20 @@ public class User {
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
     @Column(columnDefinition = "VARCHAR(36)")
     private String userKey;
+
+//    @ManyToMany/*(fetch = FetchType.LAZY, cascade = {
+//            CascadeType.PERSIST,
+//            CascadeType.MERGE
+//    })*/
+//    @JoinTable(name = "user_server",
+//            joinColumns = { @JoinColumn(name = "user_id") },
+//            inverseJoinColumns = { @JoinColumn(name = "server_id") })
+    @ManyToMany
+    @JoinTable(
+            name = "user_server",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "server_id"))
+    private List<Server> servers = new ArrayList<>();
 
     /**
      * The default constructor exists only for the sake of JPA/MySQL. You do not use it directly, so it is designated as protected.
@@ -74,5 +91,13 @@ public class User {
     public User setUserKey(String userKey) {
         this.userKey = userKey;
         return this;
+    }
+
+    public List<Server> getServers() {
+        return servers;
+    }
+
+    public void setServer(Server server) {
+        this.servers.add(server);
     }
 }

@@ -1,8 +1,8 @@
 package com.accordserver.controller;
 
 import com.accordserver.ResponseMessage;
-import com.accordserver.accessingdatamysql.User;
-import com.accordserver.accessingdatamysql.UserRepository;
+import com.accordserver.accessingdatamysql.user.User;
+import com.accordserver.accessingdatamysql.user.UserRepository;
 import com.accordserver.util.LoginForm;
 import com.github.cliftonlabs.json_simple.JsonArray;
 import com.github.cliftonlabs.json_simple.JsonObject;

@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS `accord_db`.`server` (
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
-CREATE TABLE IF NOT EXISTS `accord_db`.`user_has_server` (
+CREATE TABLE IF NOT EXISTS `accord_db`.`user_server` (
   `user_id` INT NOT NULL,
   `server_id` INT NOT NULL,
   PRIMARY KEY (`user_id`, `server_id`),
