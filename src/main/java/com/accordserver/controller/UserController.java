@@ -35,7 +35,7 @@ public class UserController {
         // @RequestParam means it is a parameter from the GET or POST request
 
         if (userRepository.findByName(loginForm.getName()) == null) {
-            User user = new User(loginForm.getName(), loginForm.getPassword()).setOnline(false);
+            User user = new User(loginForm.getName(), loginForm.getPassword()).setOnline(false).setDescription("");
             userRepository.save(user);
             return new ResponseMessage(SUCCESS, "User created", new JsonObject());
         } else {
@@ -48,10 +48,6 @@ public class UserController {
      *
      * @return json list of users
      */
-//    @GetMapping("/users")
-//    public ResponseEntity<String> getUsers(@RequestHeader(value = "userKey") String userKey) {
-//        return new ResponseEntity<String>(userKey + " userKey", HttpStatus.OK);
-//    }
     @GetMapping("/users")
     public @ResponseBody
     ResponseMessage getUsers(@RequestHeader(value = "userKey") String userKey) {
@@ -63,8 +59,9 @@ public class UserController {
                 JsonArray onlineUserData = new JsonArray();
                 for (User cleanUser : onlineUsers) {
                     JsonObject newUserData = new JsonObject();
-                    newUserData.put("id", cleanUser.getId());
+                    newUserData.put("id", String.valueOf(cleanUser.getId()));
                     newUserData.put("name", cleanUser.getName());
+                    newUserData.put("description", cleanUser.getDescription());
                     onlineUserData.add(newUserData);
                 }
 

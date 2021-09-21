@@ -1,5 +1,7 @@
 package com.accordserver.accessingdatamysql.user;
 
+import com.accordserver.accessingdatamysql.categories.Categories;
+import com.accordserver.accessingdatamysql.channels.Channels;
 import com.accordserver.accessingdatamysql.server.Server;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -18,6 +20,7 @@ public class User {
     private String name;
     private String password;
     private boolean online;
+    private String description;
 
     // settings for userKey
     @GeneratedValue(generator = "uuid2")
@@ -31,6 +34,26 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "server_id"))
     private List<Server> servers = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "member_server",
+            joinColumns = @JoinColumn(name = "member_id"),
+            inverseJoinColumns = @JoinColumn(name = "server_id"))
+    private List<Server> memberServers = new ArrayList<>();
+
+    // privileged Member / Channel
+    @ManyToMany
+    @JoinTable(
+            name = "user_channel_privileged",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "channel_id"))
+    private List<Channels> privilegedChannel = new ArrayList<>();
+
+    // audioMember / Channel
+    @ManyToOne
+    @JoinColumn(name = "audio_channel_id")
+    private Channels audioChannel;
 
     /**
      * The default constructor exists only for the sake of JPA/MySQL. You do not use it directly, so it is designated as protected.
@@ -92,5 +115,38 @@ public class User {
 
     public void setServer(Server server) {
         this.servers.add(server);
+    }
+
+    public List<Server> getMemberServers() {
+        return memberServers;
+    }
+
+    public void setMemberServers(Server memberServer) {
+        this.memberServers.add(memberServer);
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public User setDescription(String description) {
+        this.description = description;
+        return this;
+    }
+
+    public Channels getAudioChannel() {
+        return audioChannel;
+    }
+
+    public void setAudioChannel(Channels audioChannel) {
+        this.audioChannel = audioChannel;
+    }
+
+    public List<Channels> getPrivilegedChannel() {
+        return privilegedChannel;
+    }
+
+    public void setPrivilegedChannel(List<Channels> privilegedChannel) {
+        this.privilegedChannel = privilegedChannel;
     }
 }

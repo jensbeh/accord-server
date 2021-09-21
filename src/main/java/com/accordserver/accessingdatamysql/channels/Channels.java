@@ -2,8 +2,11 @@ package com.accordserver.accessingdatamysql.channels;
 
 import com.accordserver.accessingdatamysql.categories.Categories;
 import com.accordserver.accessingdatamysql.server.Server;
+import com.accordserver.accessingdatamysql.user.User;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 // @Entity tells Hibernate to make a table out of this class. Hibernate automatically translates the entity into a table.
@@ -26,6 +29,18 @@ public class Channels {
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Categories category;
+
+    // privileged Member
+    @ManyToMany(mappedBy = "privilegedChannel")
+    private List<User> privilegedMember = new ArrayList<>();
+
+    // audioMember
+    @OneToMany(
+            mappedBy = "audioChannel",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<User> audioMember = new ArrayList<>();
 
     /**
      * The default constructor exists only for the sake of JPA/MySQL. You do not use it directly, so it is designated as protected.
@@ -96,5 +111,21 @@ public class Channels {
 
     public void setCategory(Categories category) {
         this.category = category;
+    }
+
+    public List<User> getAudioMember() {
+        return audioMember;
+    }
+
+    public void setAudioMember(User audioMember) {
+        this.audioMember.add(audioMember);
+    }
+
+    public List<User> getPrivilegedMember() {
+        return privilegedMember;
+    }
+
+    public void setPrivilegedMember(User privilegedMember) {
+        this.privilegedMember.add(privilegedMember);
     }
 }

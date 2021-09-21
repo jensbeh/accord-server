@@ -17,11 +17,15 @@ public class Server {
     private int id;
 
     private String name;
-    private String owner;
+    private int owner;
 
     // user
     @ManyToMany(mappedBy = "servers")
     private List<User> users = new ArrayList<>();
+
+    // members
+    @ManyToMany(mappedBy = "memberServers")
+    private List<User> members = new ArrayList<>();
 
     // categories
     @OneToMany(
@@ -70,11 +74,11 @@ public class Server {
         return name;
     }
 
-    public String getOwner() {
+    public int getOwner() {
         return owner;
     }
 
-    public Server setOwner(String owner) {
+    public Server setOwner(int owner) {
         this.owner = owner;
         return this;
     }
@@ -103,5 +107,13 @@ public class Server {
     public Server setChannel(Channels channel) {
         this.channels.add(channel);
         return this;
+    }
+
+    public List<User> getMembers() {
+        return members;
+    }
+
+    public void setMembers(User member) {
+        this.members.add(member);
     }
 }

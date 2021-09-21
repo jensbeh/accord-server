@@ -9,10 +9,12 @@ import com.accordserver.accessingdatamysql.server.Server;
 import com.accordserver.accessingdatamysql.server.ServerRepository;
 import com.accordserver.accessingdatamysql.user.User;
 import com.accordserver.accessingdatamysql.user.UserRepository;
+import com.github.cliftonlabs.json_simple.JsonArray;
 import com.github.cliftonlabs.json_simple.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.accordserver.util.Constants.SUCCESS;
@@ -44,64 +46,98 @@ public class ServerController {
     @PostMapping("/servers") // Map ONLY POST Requests - createServer
     public @ResponseBody
     ResponseMessage createServer(@RequestBody Map<String, Object> data, @RequestHeader(value = "userKey") String userKey) {
+        User currentUser = userRepository.findByUserKey(userKey);
 
         // here it is important to set the one class to the many class
-        Server server = new Server(data.get("name").toString()).setOwner(userKey);
-        Categories category = new Categories("default-category", server);
-        Channels channel = new Channels("default-text-channel", "text", false, category, server);
+        Server newServer = new Server(data.get("name").toString()).setOwner(currentUser.getId());
+        Categories newCategory = new Categories("default-category", newServer);
+        Channels newChannel = new Channels("default-text-channel", "text", false, newCategory, newServer);
 
-        // save channel to category (ONLY FOR USE THE OBJECTS IN THIS METHOD, NO IMPACT TO mySQL!)
-        category.setChannel(channel);
+        // save newChannel to newCategory (ONLY FOR USE THE OBJECTS IN THIS METHOD, NO IMPACT TO mySQL!)
+        newCategory.setChannel(newChannel);
 
-        // save category & channel to server (ONLY FOR USE THE OBJECTS IN THIS METHOD, NO IMPACT TO mySQL!)
-        server.setCategory(category).setChannel(channel);
+        // save newCategory & newChannel to newServer (ONLY FOR USE THE OBJECTS IN THIS METHOD, NO IMPACT TO mySQL!)
+        newServer.setCategory(newCategory).setChannel(newChannel);
 
-        serverRepository.save(server);
-        categoriesRepository.save(category);
-        channelsRepository.save(channel);
+        // set currentUser to the first Member
+        newServer.setMembers(currentUser);
+        currentUser.setMemberServers(newServer);
 
-        User user = userRepository.findByUserKey(userKey);
-        user.setServer(server);
-        userRepository.save(user);
+        serverRepository.save(newServer);
+        categoriesRepository.save(newCategory);
+        channelsRepository.save(newChannel);
+
+        currentUser.setServer(newServer);
+        userRepository.save(currentUser);
 
         JsonObject serverData = new JsonObject();
-        serverData.put("id", server.getId());
-        serverData.put("name", server.getName());
+        serverData.put("id", String.valueOf(newServer.getId()));
+        serverData.put("name", newServer.getName());
 
         return new ResponseMessage(SUCCESS, "", serverData);
     }
 
-//    /**
-//     * Gets all registered users
-//     *
-//     * @return json list of users
-//     */
-////    @GetMapping("/users")
-////    public ResponseEntity<String> getUsers(@RequestHeader(value = "userKey") String userKey) {
-////        return new ResponseEntity<String>(userKey + " userKey", HttpStatus.OK);
-////    }
-//    @GetMapping("/users")
-//    public @ResponseBody
-//    ResponseMessage getUsers(@RequestHeader(value = "userKey") String userKey) {
-//        List<User> onlineUsers = (List<User>) userRepository.findByOnline(true);
-//
-//        for (User user : onlineUsers) {
-//            if (user.getUserKey().equals(userKey)) {
-//
-//                JsonArray onlineUserData = new JsonArray();
-//                for (User cleanUser : onlineUsers) {
-//                    JsonObject newUserData = new JsonObject();
-//                    newUserData.put("id", cleanUser.getId());
-//                    newUserData.put("name", cleanUser.getName());
-//                    onlineUserData.add(newUserData);
-//                }
-//
-//                System.out.println("onlineUser: " + onlineUsers);
-//                return new ResponseMessage(SUCCESS, "", onlineUserData);
-//            }
-//        }
-//        return new ResponseMessage(FAILED, "UserKey is not valid!", new JsonObject());
-//    }
+    /**
+     * Gets all serversInfo
+     * WHO CAN DO? -> ALL SERVER USER
+     *
+     * @param userKey key of the user
+     * @return json list of all server
+     */
+    @GetMapping("/servers/{id}")
+    public @ResponseBody
+    ResponseMessage getServersInfo(@RequestHeader(value = "userKey") String userKey, @PathVariable("id") String serverId) {
+        User currentUser = userRepository.findByUserKey(userKey);
+
+        Server currentServer = serverRepository.findById(Integer.parseInt(serverId));
+
+        System.out.println("XXXXXXXXXXX " + currentServer.getMembers());
+
+        JsonObject responseServerData = new JsonObject();
+        responseServerData.put("id", String.valueOf(currentServer.getId()));
+        responseServerData.put("name", currentServer.getName());
+        responseServerData.put("owner", String.valueOf(currentServer.getOwner()));
+        responseServerData.put("categories", new JsonArray().addAll(currentServer.getCategories()));
+
+        JsonArray jsonArray = new JsonArray();
+        for (User user : currentServer.getMembers()) {
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.put("id", String.valueOf(user.getId()));
+            jsonObject.put("name", user.getName());
+            jsonObject.put("online", user.isOnline());
+            jsonObject.put("description", user.getDescription());
+            jsonArray.add(jsonObject);
+        }
+        responseServerData.put("members", jsonArray);
+
+        return new ResponseMessage(SUCCESS, "", responseServerData);
+    }
+
+    /**
+     * Gets all servers
+     * WHO CAN DO? -> ALL SERVER USER
+     *
+     * @param userKey key of the user
+     * @return json list of all server
+     */
+    @GetMapping("/servers")
+    public @ResponseBody
+    ResponseMessage getServers(@RequestHeader(value = "userKey") String userKey) {
+        User currentUser = userRepository.findByUserKey(userKey);
+
+        List<Server> serverList = (List<Server>) serverRepository.findByOwner(currentUser.getId());
+
+        JsonArray responseServerDataList = new JsonArray();
+        for (Server server : serverList) {
+            JsonObject responseServerData = new JsonObject();
+            responseServerData.put("id", String.valueOf(server.getId()));
+            responseServerData.put("name", server.getName());
+
+            responseServerDataList.add(responseServerData);
+        }
+
+        return new ResponseMessage(SUCCESS, "", responseServerDataList);
+    }
 //
 //    /**
 //     * login with an available user
