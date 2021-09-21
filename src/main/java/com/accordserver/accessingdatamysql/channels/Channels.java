@@ -1,9 +1,9 @@
 package com.accordserver.accessingdatamysql.channels;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import com.accordserver.accessingdatamysql.categories.Categories;
+import com.accordserver.accessingdatamysql.server.Server;
+
+import javax.persistence.*;
 
 @Entity
 // @Entity tells Hibernate to make a table out of this class. Hibernate automatically translates the entity into a table.
@@ -17,6 +17,16 @@ public class Channels {
     private String type;
     private boolean privileged;
 
+    // server
+    @ManyToOne
+    @JoinColumn(name = "server_id")
+    private Server server;
+
+    // category
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Categories category;
+
     /**
      * The default constructor exists only for the sake of JPA/MySQL. You do not use it directly, so it is designated as protected.
      */
@@ -26,10 +36,12 @@ public class Channels {
     /**
      * This constructor is the one you used to create instances of Customer to be saved to the database.
      */
-    public Channels(String name, String type, boolean privileged) {
+    public Channels(String name, String type, boolean privileged, Categories category, Server server) {
         this.name = name;
         this.type = type;
         this.privileged = privileged;
+        this.category = category;
+        this.server = server;
     }
 
     @Override
@@ -68,5 +80,21 @@ public class Channels {
 
     public void setPrivileged(boolean privileged) {
         this.privileged = privileged;
+    }
+
+    public Server getServer() {
+        return server;
+    }
+
+    public void setServer(Server server) {
+        this.server = server;
+    }
+
+    public Categories getCategory() {
+        return category;
+    }
+
+    public void setCategory(Categories category) {
+        this.category = category;
     }
 }

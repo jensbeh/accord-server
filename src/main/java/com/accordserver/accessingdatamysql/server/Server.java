@@ -1,12 +1,12 @@
 package com.accordserver.accessingdatamysql.server;
 
+import com.accordserver.accessingdatamysql.categories.Categories;
+import com.accordserver.accessingdatamysql.channels.Channels;
 import com.accordserver.accessingdatamysql.user.User;
 
 import javax.persistence.*;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 // @Entity tells Hibernate to make a table out of this class. Hibernate automatically translates the entity into a table.
@@ -19,13 +19,25 @@ public class Server {
     private String name;
     private String owner;
 
-    @ManyToMany(mappedBy = "servers")/*(fetch = FetchType.LAZY,
-            cascade = {
-                    CascadeType.PERSIST,
-                    CascadeType.MERGE
-            },
-            mappedBy = "servers")*/
+    // user
+    @ManyToMany(mappedBy = "servers")
     private List<User> users = new ArrayList<>();
+
+    // categories
+    @OneToMany(
+            mappedBy = "server",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Categories> categories = new ArrayList<>();
+
+    // channels
+    @OneToMany(
+            mappedBy = "server",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Channels> channels = new ArrayList<>();
 
     /**
      * The default constructor exists only for the sake of JPA/MySQL. You do not use it directly, so it is designated as protected.
@@ -73,5 +85,23 @@ public class Server {
 
     public void setUser(User user) {
         this.users.add(user);
+    }
+
+    public List<Categories> getCategories() {
+        return categories;
+    }
+
+    public Server setCategory(Categories category) {
+        this.categories.add(category);
+        return this;
+    }
+
+    public List<Channels> getChannels() {
+        return channels;
+    }
+
+    public Server setChannel(Channels channel) {
+        this.channels.add(channel);
+        return this;
     }
 }

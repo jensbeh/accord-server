@@ -25,13 +25,6 @@ public class User {
     @Column(columnDefinition = "VARCHAR(36)")
     private String userKey;
 
-//    @ManyToMany/*(fetch = FetchType.LAZY, cascade = {
-//            CascadeType.PERSIST,
-//            CascadeType.MERGE
-//    })*/
-//    @JoinTable(name = "user_server",
-//            joinColumns = { @JoinColumn(name = "user_id") },
-//            inverseJoinColumns = { @JoinColumn(name = "server_id") })
     @ManyToMany
     @JoinTable(
             name = "user_server",

@@ -13,9 +13,9 @@ public class Messages {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
-    private String text;
-    private String from;
-    private String timestamp;
+    private String content;
+    private String fromUser;
+    private String timestampMessage;
 
     /**
      * The default constructor exists only for the sake of JPA/MySQL. You do not use it directly, so it is designated as protected.
@@ -26,17 +26,17 @@ public class Messages {
     /**
      * This constructor is the one you used to create instances of Customer to be saved to the database.
      */
-    public Messages(String text, String from, String timestamp) {
-        this.text = text;
-        this.from = from;
-        this.timestamp = timestamp;
+    public Messages(String content, String fromUser, String timestampMessage) {
+        this.content = content;
+        this.fromUser = fromUser;
+        this.timestampMessage = timestampMessage;
     }
 
     @Override
     public String toString() {
         return String.format(
-                "User[id=%d, text='%s', from='%s', timestamp='%s']",
-                id, text, from, timestamp);
+                "Messages[id=%d, content='%s', from='%s', timestamp='%s']",
+                id, content, fromUser, timestampMessage);
     }
 
     /**
@@ -46,27 +46,27 @@ public class Messages {
         return id;
     }
 
-    public String getText() {
-        return text;
+    public String getContent() {
+        return content;
     }
 
-    public void setText(String text) {
-        this.text = text;
+    public void setContent(String content) {
+        this.content = content;
     }
 
-    public String getFrom() {
-        return from;
+    public String getFromUser() {
+        return fromUser;
     }
 
-    public void setFrom(String from) {
-        this.from = from;
+    public void setFromUser(String fromUser) {
+        this.fromUser = fromUser;
     }
 
-    public String getTimestamp() {
-        return timestamp;
+    public String getTimestampMessage() {
+        return timestampMessage;
     }
 
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
+    public void setTimestampMessage(String timestampMessage) {
+        this.timestampMessage = timestampMessage;
     }
 }
