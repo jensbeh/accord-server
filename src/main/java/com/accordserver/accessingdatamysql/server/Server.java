@@ -3,6 +3,8 @@ package com.accordserver.accessingdatamysql.server;
 import com.accordserver.accessingdatamysql.categories.Categories;
 import com.accordserver.accessingdatamysql.channels.Channels;
 import com.accordserver.accessingdatamysql.user.User;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -24,7 +26,9 @@ public class Server {
     private List<User> users = new ArrayList<>();
 
     // members
-    @ManyToMany(mappedBy = "memberServers")
+    @LazyCollection(LazyCollectionOption.FALSE)
+    @ManyToMany(mappedBy = "memberServers",
+            cascade = CascadeType.ALL)
     private List<User> members = new ArrayList<>();
 
     // categories

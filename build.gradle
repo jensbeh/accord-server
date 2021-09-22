@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.accord-server'
-version = '0.0.1-SNAPSHOT'
+version = '1.0.0'
 sourceCompatibility = '11'
 
 repositories {
@@ -13,11 +13,12 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	runtimeOnly 'com.h2database:h2'
-	runtimeOnly 'mysql:mysql-connector-java'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa:2.5.4'
+	implementation 'org.springframework.boot:spring-boot-starter-web:2.5.4'
+	implementation 'org.springframework.boot:spring-boot-starter-websocket:2.5.4'
+	runtimeOnly 'com.h2database:h2:1.4.200'
+	runtimeOnly 'mysql:mysql-connector-java:8.0.25'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test:2.5.4'
 
 	implementation 'com.github.cliftonlabs:json-simple:3.1.0'
 }

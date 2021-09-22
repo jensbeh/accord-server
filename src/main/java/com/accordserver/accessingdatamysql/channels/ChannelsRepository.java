@@ -1,5 +1,6 @@
 package com.accordserver.accessingdatamysql.channels;
 
+import com.accordserver.accessingdatamysql.server.Server;
 import org.springframework.data.repository.CrudRepository;
 
 /**
@@ -9,6 +10,8 @@ import org.springframework.data.repository.CrudRepository;
  */
 public interface ChannelsRepository extends CrudRepository<Channels, String> {
     Iterable<Channels> findByCategoryId(int categoryId);
+
+    Channels findById(int channelId);
 
 //    Channels findByName(String name);
 //

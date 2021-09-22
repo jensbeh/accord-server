@@ -1,8 +1,11 @@
 package com.accordserver.accessingdatamysql.channels;
 
 import com.accordserver.accessingdatamysql.categories.Categories;
+import com.accordserver.accessingdatamysql.messages.Messages;
 import com.accordserver.accessingdatamysql.server.Server;
 import com.accordserver.accessingdatamysql.user.User;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -41,6 +44,15 @@ public class Channels {
             orphanRemoval = true
     )
     private List<User> audioMember = new ArrayList<>();
+
+    // messages
+    @LazyCollection(LazyCollectionOption.FALSE) // https://stackoverflow.com/questions/4334970/hibernate-throws-multiplebagfetchexception-cannot-simultaneously-fetch-multipl
+    @OneToMany(
+            mappedBy = "channel",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Messages> messages = new ArrayList<>();
 
     /**
      * The default constructor exists only for the sake of JPA/MySQL. You do not use it directly, so it is designated as protected.
@@ -127,5 +139,13 @@ public class Channels {
 
     public void setPrivilegedMember(User privilegedMember) {
         this.privilegedMember.add(privilegedMember);
+    }
+
+    public List<Messages> getMessages() {
+        return messages;
+    }
+
+    public void setMessages(Messages message) {
+        this.messages.add(message);
     }
 }

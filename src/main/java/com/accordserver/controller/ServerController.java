@@ -91,7 +91,7 @@ public class ServerController {
 
         Server currentServer = serverRepository.findById(Integer.parseInt(serverId));
 
-        System.out.println("XXXXXXXXXXX " + currentServer.getMembers());
+//        System.out.println("XXXXXXXXXXX " + currentServer.getMembers());
 
         JsonObject responseServerData = new JsonObject();
         responseServerData.put("id", String.valueOf(currentServer.getId()));

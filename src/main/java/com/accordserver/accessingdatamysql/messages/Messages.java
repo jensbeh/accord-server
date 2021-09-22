@@ -1,9 +1,8 @@
 package com.accordserver.accessingdatamysql.messages;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import com.accordserver.accessingdatamysql.channels.Channels;
+
+import javax.persistence.*;
 
 @Entity
 // @Entity tells Hibernate to make a table out of this class. Hibernate automatically translates the entity into a table.
@@ -15,7 +14,12 @@ public class Messages {
 
     private String content;
     private String fromUser;
-    private String timestampMessage;
+    private long timestampMessage;
+
+    // channel
+    @ManyToOne
+    @JoinColumn(name = "channel_id")
+    private Channels channel;
 
     /**
      * The default constructor exists only for the sake of JPA/MySQL. You do not use it directly, so it is designated as protected.
@@ -26,10 +30,11 @@ public class Messages {
     /**
      * This constructor is the one you used to create instances of Customer to be saved to the database.
      */
-    public Messages(String content, String fromUser, String timestampMessage) {
+    public Messages(String content, String fromUser, long timestampMessage, Channels channel) {
         this.content = content;
         this.fromUser = fromUser;
         this.timestampMessage = timestampMessage;
+        this.channel = channel;
     }
 
     @Override
@@ -62,11 +67,19 @@ public class Messages {
         this.fromUser = fromUser;
     }
 
-    public String getTimestampMessage() {
+    public long getTimestampMessage() {
         return timestampMessage;
     }
 
-    public void setTimestampMessage(String timestampMessage) {
+    public void setTimestampMessage(long timestampMessage) {
         this.timestampMessage = timestampMessage;
+    }
+
+    public Channels getChannel() {
+        return channel;
+    }
+
+    public void setChannel(Channels channel) {
+        this.channel = channel;
     }
 }
