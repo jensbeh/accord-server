@@ -52,9 +52,9 @@ public class PrivateServerChatWebSocketHandler extends TextWebSocketHandler {
     @Override
     @Transactional
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        System.out.println("ChatWebSocketHandler: " + message.getPayload() + " --- " + session.getUri().getQuery() + " : " + session.getUri().getPath());
         // broadcast all messages to all connections / clients
         if (!message.getPayload().equals("noop")) {
+            System.out.println("ChatWebSocketHandler: " + message.getPayload() + " --- " + session.getUri().getQuery() + " : " + session.getUri().getPath());
 
             if (session.getUri().getQuery().contains("&")) {
                 // server message
