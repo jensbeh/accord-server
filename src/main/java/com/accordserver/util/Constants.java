@@ -2,7 +2,7 @@ package com.accordserver.util;
 
 public class Constants {
     // WORDS
-    public static final String USERKEY = "userKey";
+    public static final String USER_KEY = "userKey";
 
     // STATES
     public static final String SUCCESS = "success";

@@ -52,7 +52,7 @@ public class UserController {
      */
     @GetMapping("/users")
     public @ResponseBody
-    ResponseMessage getUsers(@RequestHeader(value = USERKEY) String userKey) {
+    ResponseMessage getUsers(@RequestHeader(value = USER_KEY) String userKey) {
         List<User> onlineUsers = (List<User>) userRepository.findByOnline(true);
 
         for (User user : onlineUsers) {
@@ -61,7 +61,7 @@ public class UserController {
                 JsonArray onlineUserData = new JsonArray();
                 for (User cleanUser : onlineUsers) {
                     JsonObject newUserData = new JsonObject();
-                    newUserData.put("id", String.valueOf(cleanUser.getId()));
+                    newUserData.put("id", cleanUser.getId());
                     newUserData.put("name", cleanUser.getName());
                     newUserData.put("description", cleanUser.getDescription());
                     onlineUserData.add(newUserData);
@@ -92,7 +92,7 @@ public class UserController {
                 userRepository.save(user);
 
                 JsonObject data = new JsonObject();
-                data.put(USERKEY, userKeyString);
+                data.put(USER_KEY, userKeyString);
 
                 // WebSocket userJoined
                 systemWebSocketHandler.sendUserJoined(user);
@@ -113,7 +113,7 @@ public class UserController {
      * @return rest answer
      */
     @PostMapping("/users/logout")
-    public ResponseMessage logout(@RequestHeader(value = USERKEY) String userKey) {
+    public ResponseMessage logout(@RequestHeader(value = USER_KEY) String userKey) {
         User user = userRepository.findByUserKey(userKey);
 
         if (user != null) {

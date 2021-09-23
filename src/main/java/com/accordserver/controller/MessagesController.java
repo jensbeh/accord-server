@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.accordserver.util.Constants.SUCCESS;
-import static com.accordserver.util.Constants.USERKEY;
+import static com.accordserver.util.Constants.USER_KEY;
 
 @RestController
 public class MessagesController {
@@ -33,15 +33,15 @@ public class MessagesController {
      */
     @GetMapping("/servers/{serverId}/categories/{categoryId}/channels/{channelId}/messages")
     public @ResponseBody
-    ResponseMessage getMessages(@RequestHeader(value = USERKEY) String userKey, @PathVariable("serverId") String serverId, @PathVariable("categoryId") String categoryId, @PathVariable("channelId") String channelId, @RequestParam String timestamp) {
+    ResponseMessage getMessages(@RequestHeader(value = USER_KEY) String userKey, @PathVariable("serverId") String serverId, @PathVariable("categoryId") String categoryId, @PathVariable("channelId") String channelId, @RequestParam String timestamp) {
 
-        List<Messages> MessagesList = (List<Messages>) messagesRepository.findByChannelId(Integer.parseInt(channelId));
+        List<Messages> MessagesList = (List<Messages>) messagesRepository.findByChannelId(channelId);
 
         JsonArray responseMessagesDataList = new JsonArray();
         // put all messages
         for (Messages messages : MessagesList) {
             JsonObject responseMessageData = new JsonObject();
-            responseMessageData.put("id", String.valueOf(messages.getId()));
+            responseMessageData.put("id", messages.getId());
             responseMessageData.put("channel", channelId);
             responseMessageData.put("timestamp", messages.getTimestampMessage());
             responseMessageData.put("from", messages.getFromUser());

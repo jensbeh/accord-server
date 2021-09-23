@@ -3,6 +3,7 @@ package com.accordserver.accessingdatamysql.server;
 import com.accordserver.accessingdatamysql.categories.Categories;
 import com.accordserver.accessingdatamysql.channels.Channels;
 import com.accordserver.accessingdatamysql.user.User;
+import com.accordserver.util.HexId;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 
@@ -15,11 +16,11 @@ import java.util.List;
 public class Server {
     // main key/id of the table. This both is only for variable "id".
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
+    @Column(name = "id", nullable = false)
+    private String id;
 
     private String name;
-    private int owner;
+    private String owner;
 
     // user
     @ManyToMany(mappedBy = "servers")
@@ -57,6 +58,7 @@ public class Server {
      * This constructor is the one you used to create instances of Server to be saved to the database.
      */
     public Server(String name) {
+        this.id = HexId.generateHexId();
         this.name = name;
     }
 
@@ -70,7 +72,7 @@ public class Server {
     /**
      * Getter and Setter are needed to return an auto-generated answer to the Rest-call
      */
-    public int getId() {
+    public String getId() {
         return id;
     }
 
@@ -82,11 +84,11 @@ public class Server {
         this.name = name;
     }
 
-    public int getOwner() {
+    public String getOwner() {
         return owner;
     }
 
-    public Server setOwner(int owner) {
+    public Server setOwner(String owner) {
         this.owner = owner;
         return this;
     }

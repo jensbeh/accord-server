@@ -10,6 +10,5 @@ import org.springframework.data.repository.CrudRepository;
 public interface MessagesRepository extends CrudRepository<Messages, String> {
     Messages findBytimestampMessage(long timestamp);
 
-    Iterable<Messages> findByChannelId(int channelId);
+    Iterable<Messages> findByChannelId(String channelId);
 }
-

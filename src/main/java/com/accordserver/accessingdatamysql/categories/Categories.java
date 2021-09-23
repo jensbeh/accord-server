@@ -2,6 +2,7 @@ package com.accordserver.accessingdatamysql.categories;
 
 import com.accordserver.accessingdatamysql.channels.Channels;
 import com.accordserver.accessingdatamysql.server.Server;
+import com.accordserver.util.HexId;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -12,8 +13,8 @@ import java.util.List;
 public class Categories {
     // main key/id of the table. This both is only for variable "id".
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
+    @Column(name = "id", nullable = false)
+    private String id;
 
     private String name;
 
@@ -40,6 +41,7 @@ public class Categories {
      * This constructor is the one you used to create instances of Categories to be saved to the database.
      */
     public Categories(String name, Server server) {
+        this.id = HexId.generateHexId();
         this.name = name;
         this.server = server;
     }
@@ -54,7 +56,7 @@ public class Categories {
     /**
      * Getter and Setter are needed to return an auto-generated answer to the Rest-call
      */
-    public int getId() {
+    public String getId() {
         return id;
     }
 

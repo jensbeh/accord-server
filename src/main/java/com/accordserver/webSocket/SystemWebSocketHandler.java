@@ -1,5 +1,6 @@
 package com.accordserver.webSocket;
 
+import com.accordserver.accessingdatamysql.categories.Categories;
 import com.accordserver.accessingdatamysql.server.Server;
 import com.accordserver.accessingdatamysql.user.User;
 import com.github.cliftonlabs.json_simple.JsonObject;
@@ -22,7 +23,7 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
 
     // add a new connection / session when a client starts one
     @Override
-    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+    public void afterConnectionEstablished(WebSocketSession session) {
         if (session.getUri().getQuery() != null) {
             // System server session
             String serverId = session.getUri().getQuery().substring(session.getUri().getQuery().indexOf("serverId=") + 9);
@@ -47,7 +48,7 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
 
     // removes the connection when a client closes it.
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         System.out.println("SystemWebSocketHandler webSocket-error-status: " + status.getReason() + " : " + status.getCode());
         systemWebSocketSessions.remove(session);
     }
@@ -61,7 +62,7 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
         jsonObject.put("action", "userJoined");
         JsonObject userData = new JsonObject();
         userData.put("name", user.getName());
-        userData.put("id", String.valueOf(user.getId()));
+        userData.put("id", user.getId());
         jsonObject.put("data", userData);
 
         for (WebSocketSession webSocketSession : systemWebSocketSessions) {
@@ -82,7 +83,7 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
         jsonObject.put("action", "userLeft");
         JsonObject userData = new JsonObject();
         userData.put("name", user.getName());
-        userData.put("id", String.valueOf(user.getId()));
+        userData.put("id", user.getId());
         jsonObject.put("data", userData);
 
         for (WebSocketSession webSocketSession : systemWebSocketSessions) {
@@ -96,18 +97,18 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
 
     @Bean
     public void sendServerUpdated(Server updatedServer) {
-        // broadcast userLeft message to all connections / clients
+        // broadcast serverUpdate message to all connections / clients
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.put("action", "serverUpdated");
         JsonObject serverData = new JsonObject();
         serverData.put("name", updatedServer.getName());
-        serverData.put("id", String.valueOf(updatedServer.getId()));
+        serverData.put("id", updatedServer.getId());
         jsonObject.put("data", serverData);
 
         // send updatedName to all members with jsonObject
         for (Map.Entry<String, WebSocketSession> entry : serverSystemWebSocketSessions.entrySet()) {
-            if (entry.getKey().equals(String.valueOf(updatedServer.getId()))) {
+            if (entry.getKey().equals(updatedServer.getId())) {
                 try {
                     entry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
                 } catch (IOException e) {
@@ -117,5 +118,56 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
         }
 
         System.out.println("server updated: " + updatedServer.getName() + " " + updatedServer.getId());
+    }
+
+    @Bean
+    public void sendCategoryCreated(Server currentServer, Categories createdCategory) {
+        // broadcast categoryCreated message to all connections / clients
+
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.put("action", "categoryCreated");
+        JsonObject categoryData = new JsonObject();
+        categoryData.put("server", currentServer.getId());
+        categoryData.put("id", createdCategory.getId());
+        categoryData.put("name", createdCategory.getName());
+        jsonObject.put("data", categoryData);
+
+        // send updatedName to all members with jsonObject
+        for (Map.Entry<String, WebSocketSession> entry : serverSystemWebSocketSessions.entrySet()) {
+            if (entry.getKey().equals(currentServer.getId())) {
+                try {
+                    entry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        System.out.println("category created: " + createdCategory.getName() + " " + createdCategory.getId());
+    }
+
+    @Bean
+    public void sendCategoryUpdated(Categories updatedCategory) {
+        // broadcast categoryUpdated message to all connections / clients
+
+//        JsonObject jsonObject = new JsonObject();
+//        jsonObject.put("action", "serverUpdated");
+//        JsonObject serverData = new JsonObject();
+//        serverData.put("name", updatedServer.getName());
+//        serverData.put("id", updatedServer.getId());
+//        jsonObject.put("data", serverData);
+//
+//        // send updatedName to all members with jsonObject
+//        for (Map.Entry<String, WebSocketSession> entry : serverSystemWebSocketSessions.entrySet()) {
+//            if (entry.getKey().equals(updatedServer.getId())) {
+//                try {
+//                    entry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
+//
+//        System.out.println("server updated: " + updatedServer.getName() + " " + updatedServer.getId());
     }
 }

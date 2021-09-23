@@ -1,6 +1,7 @@
 package com.accordserver.accessingdatamysql.messages;
 
 import com.accordserver.accessingdatamysql.channels.Channels;
+import com.accordserver.util.HexId;
 
 import javax.persistence.*;
 
@@ -9,8 +10,8 @@ import javax.persistence.*;
 public class Messages {
     // main key/id of the table. This both is only for variable "id".
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
+    @Column(name = "id", nullable = false)
+    private String id;
 
     private String content;
     private String fromUser;
@@ -31,6 +32,7 @@ public class Messages {
      * This constructor is the one you used to create instances of Messages to be saved to the database.
      */
     public Messages(String content, String fromUser, long timestampMessage, Channels channel) {
+        this.id = HexId.generateHexId();
         this.content = content;
         this.fromUser = fromUser;
         this.timestampMessage = timestampMessage;
@@ -47,7 +49,7 @@ public class Messages {
     /**
      * Getter and Setter are needed to return an auto-generated answer to the Rest-call
      */
-    public int getId() {
+    public String getId() {
         return id;
     }
 

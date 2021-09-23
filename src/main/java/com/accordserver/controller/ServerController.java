@@ -49,7 +49,7 @@ public class ServerController {
      */
     @PostMapping("/servers") // Map ONLY POST Requests - createServer
     public @ResponseBody
-    ResponseMessage createServer(@RequestBody Map<String, Object> data, @RequestHeader(value = USERKEY) String userKey) {
+    ResponseMessage createServer(@RequestBody Map<String, Object> data, @RequestHeader(value = USER_KEY) String userKey) {
         User currentUser = userRepository.findByUserKey(userKey);
 
         // here it is important to set the one class to the many class
@@ -75,7 +75,7 @@ public class ServerController {
         userRepository.save(currentUser);
 
         JsonObject serverData = new JsonObject();
-        serverData.put("id", String.valueOf(newServer.getId()));
+        serverData.put("id", newServer.getId());
         serverData.put("name", newServer.getName());
 
         return new ResponseMessage(SUCCESS, "", serverData);
@@ -91,21 +91,21 @@ public class ServerController {
      */
     @GetMapping("/servers/{id}")
     public @ResponseBody
-    ResponseMessage getServersInfo(@RequestHeader(value = USERKEY) String userKey, @PathVariable("id") String serverId) {
+    ResponseMessage getServersInfo(@RequestHeader(value = USER_KEY) String userKey, @PathVariable("id") String serverId) {
         User currentUser = userRepository.findByUserKey(userKey);
 
-        Server currentServer = serverRepository.findById(Integer.parseInt(serverId));
+        Server currentServer = serverRepository.findById(serverId).get();
 
         JsonObject responseServerData = new JsonObject();
-        responseServerData.put("id", String.valueOf(currentServer.getId()));
+        responseServerData.put("id", currentServer.getId());
         responseServerData.put("name", currentServer.getName());
-        responseServerData.put("owner", String.valueOf(currentServer.getOwner()));
+        responseServerData.put("owner", currentServer.getOwner());
         responseServerData.put("categories", new JsonArray().addAll(currentServer.getCategories()));
 
         JsonArray jsonArray = new JsonArray();
         for (User user : currentServer.getMembers()) {
             JsonObject jsonObject = new JsonObject();
-            jsonObject.put("id", String.valueOf(user.getId()));
+            jsonObject.put("id", user.getId());
             jsonObject.put("name", user.getName());
             jsonObject.put("online", user.isOnline());
             jsonObject.put("description", user.getDescription());
@@ -125,7 +125,7 @@ public class ServerController {
      */
     @GetMapping("/servers")
     public @ResponseBody
-    ResponseMessage getServers(@RequestHeader(value = USERKEY) String userKey) {
+    ResponseMessage getServers(@RequestHeader(value = USER_KEY) String userKey) {
         User currentUser = userRepository.findByUserKey(userKey);
 
         List<Server> serverList = (List<Server>) serverRepository.findByOwner(currentUser.getId());
@@ -133,7 +133,7 @@ public class ServerController {
         JsonArray responseServerDataList = new JsonArray();
         for (Server server : serverList) {
             JsonObject responseServerData = new JsonObject();
-            responseServerData.put("id", String.valueOf(server.getId()));
+            responseServerData.put("id", server.getId());
             responseServerData.put("name", server.getName());
 
             responseServerDataList.add(responseServerData);
@@ -144,21 +144,21 @@ public class ServerController {
 
     /**
      * Change server name
-     * WHO CAN DO? -> ONYL OWNER
+     * WHO CAN DO? -> ONLY OWNER
      *
      * @param userKey key of the user
      * @return json list of all server
      */
     @PutMapping("/servers/{id}")
     public @ResponseBody
-    ResponseMessage updateServer(@RequestBody Map<String, Object> data, @RequestHeader(value = USERKEY) String userKey, @PathVariable("id") String serverId) {
+    ResponseMessage updateServer(@RequestBody Map<String, Object> data, @RequestHeader(value = USER_KEY) String userKey, @PathVariable("id") String serverId) {
         User currentUser = userRepository.findByUserKey(userKey);
 
         String newServerName = data.get("name").toString();
 
-        Server currentServer = serverRepository.findById(Integer.parseInt(serverId));
+        Server currentServer = serverRepository.findById(serverId).get();
 
-        if (currentServer.getOwner() == currentUser.getId()) {
+        if (currentServer.getOwner().equals(currentUser.getId())) {
 
             // update server
             currentServer.setName(newServerName);
@@ -169,7 +169,7 @@ public class ServerController {
 
             // return json
             JsonObject serverData = new JsonObject();
-            serverData.put("id", String.valueOf(currentServer.getId()));
+            serverData.put("id", currentServer.getId());
             serverData.put("name", currentServer.getName());
 
             return new ResponseMessage(SUCCESS, "", serverData);

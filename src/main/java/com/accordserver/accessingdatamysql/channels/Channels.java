@@ -4,6 +4,7 @@ import com.accordserver.accessingdatamysql.categories.Categories;
 import com.accordserver.accessingdatamysql.messages.Messages;
 import com.accordserver.accessingdatamysql.server.Server;
 import com.accordserver.accessingdatamysql.user.User;
+import com.accordserver.util.HexId;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 
@@ -16,8 +17,8 @@ import java.util.List;
 public class Channels {
     // main key/id of the table. This both is only for variable "id".
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
+    @Column(name = "id", nullable = false)
+    private String id;
 
     private String name;
     private String type;
@@ -65,6 +66,7 @@ public class Channels {
      * This constructor is the one you used to create instances of Channels to be saved to the database.
      */
     public Channels(String name, String type, boolean privileged, Categories category, Server server) {
+        this.id = HexId.generateHexId();
         this.name = name;
         this.type = type;
         this.privileged = privileged;
@@ -82,7 +84,7 @@ public class Channels {
     /**
      * Getter and Setter are needed to return an auto-generated answer to the Rest-call
      */
-    public int getId() {
+    public String getId() {
         return id;
     }
 

@@ -8,8 +8,5 @@ import org.springframework.data.repository.CrudRepository;
  * Spring automatically implements this repository interface in a bean that has the same name (with a change in the case - it is called channelsRepository).
  */
 public interface ChannelsRepository extends CrudRepository<Channels, String> {
-    Iterable<Channels> findByCategoryId(int categoryId);
-
-    Channels findById(int channelId);
+    Iterable<Channels> findByCategoryId(String categoryId);
 }
-

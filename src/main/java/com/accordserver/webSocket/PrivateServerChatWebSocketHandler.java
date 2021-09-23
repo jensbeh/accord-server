@@ -35,7 +35,7 @@ public class PrivateServerChatWebSocketHandler extends TextWebSocketHandler {
 
     // add a new connection / session when a client starts one
     @Override
-    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+    public void afterConnectionEstablished(WebSocketSession session) {
         if (session.getUri().getQuery().contains("&")) {
             // server ws
             String username = session.getUri().getQuery().substring(session.getUri().getQuery().indexOf("user=") + 5, session.getUri().getQuery().indexOf("&"));
@@ -69,23 +69,21 @@ public class PrivateServerChatWebSocketHandler extends TextWebSocketHandler {
                 Timestamp timestamp = new Timestamp(System.currentTimeMillis());
                 long currentTime = timestamp.getTime();
 
-                Channels currentChannel = channelsRepository.findById(Integer.parseInt(channelId));
+                Channels currentChannel = channelsRepository.findById(channelId).get();
                 Messages newMessage = new Messages(messageText, senderName, currentTime, currentChannel);
 
                 currentChannel.setMessages(newMessage); // this made problems because of fetch = FetchType.LAZY / EAGER, but solved it with a solution of a link at Messages Object
                 channelsRepository.save(currentChannel);
 
-                Messages reloadMessage = messagesRepository.findBytimestampMessage(currentTime);
-
                 JsonObject readyJsonObject = new JsonObject();
-                readyJsonObject.put("id", String.valueOf(reloadMessage.getId())); // messageId
+                readyJsonObject.put("id", newMessage.getId()); // messageId
                 readyJsonObject.put("channel", channelId);
                 readyJsonObject.put("timestamp", currentTime);
                 readyJsonObject.put("from", senderName);
                 readyJsonObject.put("text", messageText);
 
                 // send message to all members with readyJsonObject
-                Server currentServer = serverRepository.findById(Integer.parseInt(serverId));
+                Server currentServer = serverRepository.findById(serverId).get();
                 for (User member : currentServer.getMembers()) {
                     String key = member.getName() + "&" + serverId;
                     if (userWebSocketSessionsMap.containsKey(key)) { // send to ALL users in the channel

@@ -8,8 +8,5 @@ import org.springframework.data.repository.CrudRepository;
  * Spring automatically implements this repository interface in a bean that has the same name (with a change in the case - it is called serverRepository).
  */
 public interface ServerRepository extends CrudRepository<Server, String> {
-    Iterable<Server> findByOwner(int userKey);
-
-    Server findById(int serverId);
+    Iterable<Server> findByOwner(String userKey);
 }
-

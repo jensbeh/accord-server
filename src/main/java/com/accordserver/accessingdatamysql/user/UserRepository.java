@@ -14,4 +14,3 @@ public interface UserRepository extends CrudRepository<User, String> {
 
     Iterable<User> findByOnline(boolean isOnline);
 }
-

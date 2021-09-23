@@ -46,13 +46,13 @@ public class ChannelsController {
      */
     @PostMapping("/servers/{serverId}/categories/{categoryId}/channels") // Map ONLY POST Requests - createCategory
     public @ResponseBody
-    ResponseMessage createChannel(@RequestBody Map<String, Object> data, @RequestHeader(value = USERKEY) String userKey, @PathVariable("serverId") String serverId, @PathVariable("categoryId") String categoryId) {
+    ResponseMessage createChannel(@RequestBody Map<String, Object> data, @RequestHeader(value = USER_KEY) String userKey, @PathVariable("serverId") String serverId, @PathVariable("categoryId") String categoryId) {
 
         User currentUser = userRepository.findByUserKey(userKey);
-        Server currentServer = serverRepository.findById(Integer.parseInt(serverId));
+        Server currentServer = serverRepository.findById(serverId).get();
 
-        if (currentUser.getId() == currentServer.getOwner()) {
-            Categories currentCategory = categoriesRepository.findById(Integer.parseInt(categoryId));
+        if (currentUser.getId().equals(currentServer.getOwner())) {
+            Categories currentCategory = categoriesRepository.findById(categoryId).get();
             Channels newChannel = new Channels(data.get("name").toString(), data.get("type").toString(), (boolean) data.get("privileged"), currentCategory, currentServer);
 
             currentCategory.setChannel(newChannel);
@@ -60,11 +60,11 @@ public class ChannelsController {
             categoriesRepository.save(currentCategory);
 
             JsonObject responseData = new JsonObject();
-            responseData.put("id", String.valueOf(newChannel.getId()));
+            responseData.put("id", newChannel.getId());
             responseData.put("name", newChannel.getName());
             responseData.put("type", newChannel.getType());
             responseData.put("privileged", newChannel.isPrivileged());
-            responseData.put("category", String.valueOf(currentCategory.getId()));
+            responseData.put("category", currentCategory.getId());
 
             return new ResponseMessage(SUCCESS, "", responseData);
         } else {
@@ -83,14 +83,14 @@ public class ChannelsController {
      */
     @GetMapping("/servers/{serverId}/categories/{categoryId}/channels")
     public @ResponseBody
-    ResponseMessage getChannels(@RequestHeader(value = USERKEY) String userKey, @PathVariable("serverId") String serverId, @PathVariable("categoryId") String categoryId) {
+    ResponseMessage getChannels(@RequestHeader(value = USER_KEY) String userKey, @PathVariable("serverId") String serverId, @PathVariable("categoryId") String categoryId) {
 
-        List<Channels> channelList = (List<Channels>) channelsRepository.findByCategoryId(Integer.parseInt(categoryId));
+        List<Channels> channelList = (List<Channels>) channelsRepository.findByCategoryId(categoryId);
 
         JsonArray responseChannelDataList = new JsonArray();
         for (Channels channel : channelList) {
             JsonObject responseChannelData = new JsonObject();
-            responseChannelData.put("id", String.valueOf(channel.getId()));
+            responseChannelData.put("id", channel.getId());
             responseChannelData.put("name", channel.getName());
             responseChannelData.put("type", channel.getType());
             responseChannelData.put("privileged", channel.isPrivileged());
@@ -99,14 +99,14 @@ public class ChannelsController {
             // add privileged member
             JsonArray jsonArrayPrivilegedMember = new JsonArray();
             for (User user : channel.getPrivilegedMember()) {
-                jsonArrayPrivilegedMember.add(String.valueOf(user.getId()));
+                jsonArrayPrivilegedMember.add(user.getId());
             }
             responseChannelData.put("members", jsonArrayPrivilegedMember);
 
             // add audio member
             JsonArray jsonArrayAudioMember = new JsonArray();
             for (User user : channel.getAudioMember()) {
-                jsonArrayAudioMember.add(String.valueOf(user.getId()));
+                jsonArrayAudioMember.add(user.getId());
             }
             responseChannelData.put("audioMembers", jsonArrayAudioMember);
 

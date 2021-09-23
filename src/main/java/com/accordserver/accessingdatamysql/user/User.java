@@ -2,6 +2,7 @@ package com.accordserver.accessingdatamysql.user;
 
 import com.accordserver.accessingdatamysql.channels.Channels;
 import com.accordserver.accessingdatamysql.server.Server;
+import com.accordserver.util.HexId;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -13,8 +14,8 @@ import java.util.List;
 public class User {
     // main key/id of the table. This both is only for variable "id".
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
+    @Column(name = "id", nullable = false)
+    private String id;
 
     private String name;
     private String password;
@@ -64,6 +65,7 @@ public class User {
      * This constructor is the one you used to create instances of User to be saved to the database.
      */
     public User(String name, String password) {
+        this.id = HexId.generateHexId();
         this.name = name;
         this.password = password;
     }
@@ -78,7 +80,7 @@ public class User {
     /**
      * Getter and Setter are needed to return an auto-generated answer to the Rest-call
      */
-    public int getId() {
+    public String getId() {
         return id;
     }
 
