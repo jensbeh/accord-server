@@ -9,8 +9,6 @@ import com.accordserver.accessingdatamysql.server.ServerRepository;
 import com.accordserver.accessingdatamysql.user.User;
 import com.github.cliftonlabs.json_simple.JsonObject;
 import com.github.cliftonlabs.json_simple.Jsoner;
-import org.hibernate.Hibernate;
-import org.hibernate.type.BigIntegerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.CloseStatus;
@@ -18,8 +16,6 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import java.io.IOException;
-import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,14 +52,12 @@ public class PrivateServerChatWebSocketHandler extends TextWebSocketHandler {
     @Override
     @Transactional
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        System.out.println("E: ChatWebSocketHandler: " + message.getPayload() + " --- " + session.getUri().getQuery() + " : " + session.getUri().getPath());
+        System.out.println("ChatWebSocketHandler: " + message.getPayload() + " --- " + session.getUri().getQuery() + " : " + session.getUri().getPath());
         // broadcast all messages to all connections / clients
         if (!message.getPayload().equals("noop")) {
 
             if (session.getUri().getQuery().contains("&")) {
-                // server Message
-                System.out.println("server Message");
-
+                // server message
                 String senderName = session.getUri().getQuery().substring(session.getUri().getQuery().indexOf("user=") + 5, session.getUri().getQuery().indexOf("&"));
                 String serverId = session.getUri().getQuery().substring(session.getUri().getQuery().indexOf("serverId=") + 9);
 
@@ -78,7 +72,7 @@ public class PrivateServerChatWebSocketHandler extends TextWebSocketHandler {
                 Channels currentChannel = channelsRepository.findById(Integer.parseInt(channelId));
                 Messages newMessage = new Messages(messageText, senderName, currentTime, currentChannel);
 
-                currentChannel.setMessages(newMessage); // XXX
+                currentChannel.setMessages(newMessage); // this made problems because of fetch = FetchType.LAZY / EAGER, but solved it with a solution of a link at Messages Object
                 channelsRepository.save(currentChannel);
 
                 Messages reloadMessage = messagesRepository.findBytimestampMessage(currentTime);
@@ -100,9 +94,7 @@ public class PrivateServerChatWebSocketHandler extends TextWebSocketHandler {
                 }
 
             } else {
-                // private Message
-                System.out.println("private Message");
-
+                // private message
                 String senderName = session.getUri().getQuery().substring(session.getUri().getQuery().indexOf("=") + 1);
 
                 JsonObject messageJson = Jsoner.deserialize(message.getPayload(), new JsonObject());
@@ -123,7 +115,7 @@ public class PrivateServerChatWebSocketHandler extends TextWebSocketHandler {
                 if (userWebSocketSessionsMap.containsKey(receiverName)) {
                     userWebSocketSessionsMap.get(receiverName).sendMessage(new TextMessage(readyJsonObject.toJson()));
                 } else {
-                    System.out.println("User is not online!");
+                    System.out.println("User is not online!"); // need to return a message to client
                 }
             }
         }
@@ -132,9 +124,7 @@ public class PrivateServerChatWebSocketHandler extends TextWebSocketHandler {
     // removes the connection when a client closes it.
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        System.out.println("F: status: " + status.getReason() + " : " + status.getCode());
+        System.out.println("ChatWebSocketHandler webSocket-error-status: " + status.getReason() + " : " + status.getCode());
         userWebSocketSessionsMap.remove(session);
     }
-
-
 }

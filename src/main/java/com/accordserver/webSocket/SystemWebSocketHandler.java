@@ -3,7 +3,9 @@ package com.accordserver.webSocket;
 import com.accordserver.accessingdatamysql.user.User;
 import com.github.cliftonlabs.json_simple.JsonObject;
 import org.springframework.context.annotation.Bean;
-import org.springframework.web.socket.*;
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
@@ -17,15 +19,9 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
     // add a new connection / session when a client starts one
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-//        System.out.println("D: userKey: " + session.getHandshakeHeaders().get("userKey"));
-        // send user is online!
         webSocketSessions.add(session);
     }
 
-
-    // unterschiedliche packages mit kopien für alle ws
-    // private system keine handleTextMessage?
-    // eigene klasse für verschiedene sockethandler? (.addHandler(new SocketTextHandler)) (https://www.javainuse.com/spring/boot-websocket (min 6:33))
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
 //        System.out.println("E: SystemWebSocketHandler: " + message + " --- " + session.getUri().getQuery());
@@ -39,22 +35,21 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
     // removes the connection when a client closes it.
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        System.out.println("F: status: " + status.getReason() + " : " + status.getCode());
-        // send user is offline!
+        System.out.println("SystemWebSocketHandler webSocket-error-status: " + status.getReason() + " : " + status.getCode());
         webSocketSessions.remove(session);
     }
 
     @Bean
     public void sendUserJoined(User user) {
-        System.out.println("User is online! " + user.getName());
-        // broadcast all messages to all connections / clients
+        System.out.println("user joined: " + user.getName());
+        // broadcast userJoined message to all connections / clients
 
         JsonObject jsonObject = new JsonObject();
-        jsonObject.put("action", "userJoined"); // userLeft
+        jsonObject.put("action", "userJoined");
         JsonObject userData = new JsonObject();
         userData.put("name", user.getName());
         userData.put("id", String.valueOf(user.getId()));
-        jsonObject.put("data", userData); // userLeft
+        jsonObject.put("data", userData);
 
         for (WebSocketSession webSocketSession : webSocketSessions) {
             try {
@@ -67,15 +62,15 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
 
     @Bean
     public void sendUserLeft(User user) {
-        System.out.println("User left! " + user.getName());
-        // broadcast all messages to all connections / clients
+        System.out.println("user left: " + user.getName());
+        // broadcast userLeft message to all connections / clients
 
         JsonObject jsonObject = new JsonObject();
-        jsonObject.put("action", "userLeft"); // userLeft
+        jsonObject.put("action", "userLeft");
         JsonObject userData = new JsonObject();
         userData.put("name", user.getName());
         userData.put("id", String.valueOf(user.getId()));
-        jsonObject.put("data", userData); // userLeft
+        jsonObject.put("data", userData);
 
         for (WebSocketSession webSocketSession : webSocketSessions) {
             try {

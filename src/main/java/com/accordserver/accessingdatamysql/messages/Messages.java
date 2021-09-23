@@ -28,7 +28,7 @@ public class Messages {
     }
 
     /**
-     * This constructor is the one you used to create instances of Customer to be saved to the database.
+     * This constructor is the one you used to create instances of Messages to be saved to the database.
      */
     public Messages(String content, String fromUser, long timestampMessage, Channels channel) {
         this.content = content;

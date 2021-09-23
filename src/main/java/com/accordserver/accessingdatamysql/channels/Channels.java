@@ -46,7 +46,8 @@ public class Channels {
     private List<User> audioMember = new ArrayList<>();
 
     // messages
-    @LazyCollection(LazyCollectionOption.FALSE) // https://stackoverflow.com/questions/4334970/hibernate-throws-multiplebagfetchexception-cannot-simultaneously-fetch-multipl
+    @LazyCollection(LazyCollectionOption.FALSE)
+    // https://stackoverflow.com/questions/4334970/hibernate-throws-multiplebagfetchexception-cannot-simultaneously-fetch-multipl
     @OneToMany(
             mappedBy = "channel",
             cascade = CascadeType.ALL,
@@ -61,7 +62,7 @@ public class Channels {
     }
 
     /**
-     * This constructor is the one you used to create instances of Customer to be saved to the database.
+     * This constructor is the one you used to create instances of Channels to be saved to the database.
      */
     public Channels(String name, String type, boolean privileged, Categories category, Server server) {
         this.name = name;

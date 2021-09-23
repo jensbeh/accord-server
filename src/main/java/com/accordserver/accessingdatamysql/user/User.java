@@ -1,6 +1,5 @@
 package com.accordserver.accessingdatamysql.user;
 
-import com.accordserver.accessingdatamysql.categories.Categories;
 import com.accordserver.accessingdatamysql.channels.Channels;
 import com.accordserver.accessingdatamysql.server.Server;
 import org.hibernate.annotations.GenericGenerator;
@@ -62,7 +61,7 @@ public class User {
     }
 
     /**
-     * This constructor is the one you used to create instances of Customer to be saved to the database.
+     * This constructor is the one you used to create instances of User to be saved to the database.
      */
     public User(String name, String password) {
         this.name = name;

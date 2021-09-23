@@ -13,23 +13,29 @@ import static com.accordserver.util.Constants.SYSTEM_ENDPOINT;
 @EnableWebSocket
 public class WebSocketConfiguration implements WebSocketConfigurer {
 
-
+    /**
+     * Add Handlers to the different Endpoints. Handler will handle the incoming messages and also can send messages.
+     * .setAllowedOrigins("*") can limit the origin link from where the client is coming.
+     */
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
-        System.out.println("A");
         webSocketHandlerRegistry.addHandler(newSystemWebSocketHandler(), SYSTEM_ENDPOINT).setAllowedOrigins("*");
         webSocketHandlerRegistry.addHandler(newPrivateServerChatWebSocketHandler(), PRIVATE_SERVER_CHAT_ENDPOINT).setAllowedOrigins("*");
     }
 
+    /**
+     * Creates a new Handler which can handle all system messages.
+     */
     @Bean
     public SystemWebSocketHandler newSystemWebSocketHandler() {
-        System.out.println("B: newSystemWebSocketHandler");
         return new SystemWebSocketHandler();
     }
 
+    /**
+     * Creates a new Handler which can handle all chat messages.
+     */
     @Bean
     public PrivateServerChatWebSocketHandler newPrivateServerChatWebSocketHandler() {
-        System.out.println("B: newPrivateServerChatWebSocketHandler");
         return new PrivateServerChatWebSocketHandler();
     }
 }

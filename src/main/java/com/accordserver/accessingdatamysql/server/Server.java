@@ -54,7 +54,7 @@ public class Server {
     }
 
     /**
-     * This constructor is the one you used to create instances of Customer to be saved to the database.
+     * This constructor is the one you used to create instances of Server to be saved to the database.
      */
     public Server(String name) {
         this.name = name;

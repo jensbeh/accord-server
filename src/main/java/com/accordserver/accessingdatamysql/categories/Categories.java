@@ -37,7 +37,7 @@ public class Categories {
     }
 
     /**
-     * This constructor is the one you used to create instances of Customer to be saved to the database.
+     * This constructor is the one you used to create instances of Categories to be saved to the database.
      */
     public Categories(String name, Server server) {
         this.name = name;
