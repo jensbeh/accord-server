@@ -78,6 +78,10 @@ public class Server {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public int getOwner() {
         return owner;
     }

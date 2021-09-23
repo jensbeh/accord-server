@@ -9,6 +9,7 @@ import com.accordserver.accessingdatamysql.server.Server;
 import com.accordserver.accessingdatamysql.server.ServerRepository;
 import com.accordserver.accessingdatamysql.user.User;
 import com.accordserver.accessingdatamysql.user.UserRepository;
+import com.accordserver.webSocket.SystemWebSocketHandler;
 import com.github.cliftonlabs.json_simple.JsonArray;
 import com.github.cliftonlabs.json_simple.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-import static com.accordserver.util.Constants.SUCCESS;
-import static com.accordserver.util.Constants.USERKEY;
+import static com.accordserver.util.Constants.*;
 
 @RestController
 public class ServerController {
@@ -35,6 +35,9 @@ public class ServerController {
 
     @Autowired
     private ChannelsRepository channelsRepository;
+
+    @Autowired
+    private SystemWebSocketHandler systemWebSocketHandler;
 
     /**
      * creates a new server
@@ -114,7 +117,7 @@ public class ServerController {
     }
 
     /**
-     * Gets all servers
+     * Get all servers
      * WHO CAN DO? -> ALL SERVER USER
      *
      * @param userKey key of the user
@@ -137,5 +140,41 @@ public class ServerController {
         }
 
         return new ResponseMessage(SUCCESS, "", responseServerDataList);
+    }
+
+    /**
+     * Change server name
+     * WHO CAN DO? -> ONYL OWNER
+     *
+     * @param userKey key of the user
+     * @return json list of all server
+     */
+    @PutMapping("/servers/{id}")
+    public @ResponseBody
+    ResponseMessage updateServer(@RequestBody Map<String, Object> data, @RequestHeader(value = USERKEY) String userKey, @PathVariable("id") String serverId) {
+        User currentUser = userRepository.findByUserKey(userKey);
+
+        String newServerName = data.get("name").toString();
+
+        Server currentServer = serverRepository.findById(Integer.parseInt(serverId));
+
+        if (currentServer.getOwner() == currentUser.getId()) {
+
+            // update server
+            currentServer.setName(newServerName);
+            serverRepository.save(currentServer);
+
+            // send webSocket message
+            systemWebSocketHandler.sendServerUpdated(currentServer);
+
+            // return json
+            JsonObject serverData = new JsonObject();
+            serverData.put("id", String.valueOf(currentServer.getId()));
+            serverData.put("name", currentServer.getName());
+
+            return new ResponseMessage(SUCCESS, "", serverData);
+        } else {
+            return new ResponseMessage(FAILED, "This is not your server!", new JsonObject());
+        }
     }
 }
