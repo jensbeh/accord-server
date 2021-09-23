@@ -147,27 +147,28 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
     }
 
     @Bean
-    public void sendCategoryUpdated(Categories updatedCategory) {
+    public void sendCategoryUpdated(Server currentServer, Categories updatedCategory) {
         // broadcast categoryUpdated message to all connections / clients
 
-//        JsonObject jsonObject = new JsonObject();
-//        jsonObject.put("action", "serverUpdated");
-//        JsonObject serverData = new JsonObject();
-//        serverData.put("name", updatedServer.getName());
-//        serverData.put("id", updatedServer.getId());
-//        jsonObject.put("data", serverData);
-//
-//        // send updatedName to all members with jsonObject
-//        for (Map.Entry<String, WebSocketSession> entry : serverSystemWebSocketSessions.entrySet()) {
-//            if (entry.getKey().equals(updatedServer.getId())) {
-//                try {
-//                    entry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }
-//
-//        System.out.println("server updated: " + updatedServer.getName() + " " + updatedServer.getId());
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.put("action", "categoryUpdated");
+        JsonObject categoryData = new JsonObject();
+        categoryData.put("server", currentServer.getId());
+        categoryData.put("id", updatedCategory.getId());
+        categoryData.put("name", updatedCategory.getName());
+        jsonObject.put("data", categoryData);
+
+        // send updatedName to all members with jsonObject
+        for (Map.Entry<String, WebSocketSession> entry : serverSystemWebSocketSessions.entrySet()) {
+            if (entry.getKey().equals(currentServer.getId())) {
+                try {
+                    entry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        System.out.println("category updated: " + updatedCategory.getName() + " " + updatedCategory.getId());
     }
 }

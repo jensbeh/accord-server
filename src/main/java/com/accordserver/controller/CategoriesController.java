@@ -6,6 +6,8 @@ import com.accordserver.accessingdatamysql.categories.CategoriesRepository;
 import com.accordserver.accessingdatamysql.channels.ChannelsRepository;
 import com.accordserver.accessingdatamysql.server.Server;
 import com.accordserver.accessingdatamysql.server.ServerRepository;
+import com.accordserver.accessingdatamysql.user.User;
+import com.accordserver.accessingdatamysql.user.UserRepository;
 import com.accordserver.webSocket.SystemWebSocketHandler;
 import com.github.cliftonlabs.json_simple.JsonArray;
 import com.github.cliftonlabs.json_simple.JsonObject;
@@ -15,8 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-import static com.accordserver.util.Constants.SUCCESS;
-import static com.accordserver.util.Constants.USER_KEY;
+import static com.accordserver.util.Constants.*;
 
 @RestController
 public class CategoriesController {
@@ -32,6 +33,9 @@ public class CategoriesController {
     private ChannelsRepository channelsRepository;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private SystemWebSocketHandler systemWebSocketHandler;
 
     /**
@@ -45,24 +49,32 @@ public class CategoriesController {
     @PostMapping("/servers/{id}/categories") // Map ONLY POST Requests - createCategory
     public @ResponseBody
     ResponseMessage createCategory(@RequestBody Map<String, Object> data, @RequestHeader(value = USER_KEY) String userKey, @PathVariable("id") String serverId) {
-        // create category and save it
+        User currentUser = userRepository.findByUserKey(userKey);
         Server currentServer = serverRepository.findById(serverId).get();
-        Categories newCategory = new Categories(data.get("name").toString(), currentServer);
 
-        currentServer.setCategory(newCategory);
+        if (currentServer.getOwner().equals(currentUser.getId())) {
+            // create category and save it
+            Categories newCategory = new Categories(data.get("name").toString(), currentServer);
 
-        serverRepository.save(currentServer);
+            currentServer.setCategory(newCategory);
 
-        // send webSocket message
-        systemWebSocketHandler.sendCategoryCreated(currentServer, newCategory);
+            serverRepository.save(currentServer);
 
-        // send response
-        JsonObject responseData = new JsonObject();
-        responseData.put("id", newCategory.getId());
-        responseData.put("name", newCategory.getName());
-        responseData.put("server", currentServer.getId());
-        responseData.put("channels", new JsonArray());
-        return new ResponseMessage(SUCCESS, "", responseData);
+            // send webSocket message
+            systemWebSocketHandler.sendCategoryCreated(currentServer, newCategory);
+
+            // send response
+            JsonObject responseData = new JsonObject();
+            responseData.put("id", newCategory.getId());
+            responseData.put("name", newCategory.getName());
+            responseData.put("server", currentServer.getId());
+            responseData.put("channels", new JsonArray());
+            return new ResponseMessage(SUCCESS, "", responseData);
+
+        } else {
+            return new ResponseMessage(FAILED, "This is not your server!", new JsonObject());
+        }
+
     }
 
     /**
@@ -92,40 +104,43 @@ public class CategoriesController {
         return new ResponseMessage(SUCCESS, "", responseCategoriesDataList);
     }
 
-//    /**
-//     * Change category name
-//     * WHO CAN DO? -> ONLY OWNER
-//     *
-//     * @param userKey key of the user
-//     * @return json list of all server
-//     */
-//    //PUT /servers/:id/categories/:catId
-//    @PutMapping("/servers/{id}")
-//    public @ResponseBody
-//    ResponseMessage updateCategory(@RequestBody Map<String, Object> data, @RequestHeader(value = USERKEY) String userKey, @PathVariable("id") String serverId) {
-//        User currentUser = userRepository.findByUserKey(userKey);
-//
-//        String newServerName = data.get("name").toString();
-//
-//        Server currentServer = serverRepository.findById(Integer.parseInt(serverId));
-//
-//        if (currentServer.getOwner() == currentUser.getId()) {
-//
-//            // update server
-//            currentServer.setName(newServerName);
-//            serverRepository.save(currentServer);
-//
-//            // send webSocket message
-//            systemWebSocketHandler.sendServerUpdated(currentServer);
-//
-//            // return json
-//            JsonObject serverData = new JsonObject();
-//            serverData.put("id", currentServer.getId());
-//            serverData.put("name", currentServer.getName());
-//
-//            return new ResponseMessage(SUCCESS, "", serverData);
-//        } else {
-//            return new ResponseMessage(FAILED, "This is not your server!", new JsonObject());
-//        }
-//    }
+    /**
+     * Change category name
+     * WHO CAN DO? -> ONLY OWNER
+     *
+     * @param userKey key of the user
+     * @return json list of all server
+     */
+    @PutMapping("/servers/{serverId}/categories/{categoryId}")
+    public @ResponseBody
+    ResponseMessage updateCategory(@RequestBody Map<String, Object> data, @RequestHeader(value = USER_KEY) String userKey, @PathVariable("serverId") String serverId, @PathVariable("categoryId") String categoryId) {
+        User currentUser = userRepository.findByUserKey(userKey);
+
+        Server currentServer = serverRepository.findById(serverId).get();
+        Categories currentCategory = categoriesRepository.findById(categoryId).get();
+
+        String newCategoryName = data.get("name").toString();
+
+        if (currentServer.getOwner().equals(currentUser.getId())) {
+
+            // update category
+            currentCategory.setName(newCategoryName);
+            categoriesRepository.save(currentCategory);
+
+            // send webSocket message
+            systemWebSocketHandler.sendCategoryUpdated(currentServer, currentCategory);
+
+            // return json
+            JsonObject categoryData = new JsonObject();
+            categoryData.put("id", currentCategory.getId());
+            categoryData.put("name", currentCategory.getName());
+            categoryData.put("server", currentServer.getId());
+
+            categoryData.put("channel", new JsonArray());
+
+            return new ResponseMessage(SUCCESS, "", categoryData);
+        } else {
+            return new ResponseMessage(FAILED, "This is not your server!", new JsonObject());
+        }
+    }
 }
