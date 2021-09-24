@@ -3,6 +3,8 @@ package com.accordserver.util;
 public class Constants {
     // WORDS
     public static final String USER_KEY = "userKey";
+    public static final String COUNT = "count";
+    public static final String TEMPORAL = "temporal";
 
     // STATES
     public static final String SUCCESS = "success";

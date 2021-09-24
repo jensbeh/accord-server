@@ -37,15 +37,17 @@ public class PrivateServerChatWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         if (session.getUri().getQuery().contains("&")) {
-            // server ws
+            // server webSocket
             String username = session.getUri().getQuery().substring(session.getUri().getQuery().indexOf("user=") + 5, session.getUri().getQuery().indexOf("&"));
             String serverId = session.getUri().getQuery().substring(session.getUri().getQuery().indexOf("serverId=") + 9);
             String key = username + "&" + serverId;
             userWebSocketSessionsMap.put(key, session);
+            System.out.println("ChatWebSocket server created: " + username + " " + serverId);
         } else {
-            // private chat ws
+            // private chat webSocket
             String username = session.getUri().getQuery().substring(session.getUri().getQuery().indexOf("=") + 1);
             userWebSocketSessionsMap.put(username, session);
+            System.out.println("ChatWebSocket private created: " + username);
         }
     }
 
@@ -54,7 +56,7 @@ public class PrivateServerChatWebSocketHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         // broadcast all messages to all connections / clients
         if (!message.getPayload().equals("noop")) {
-            System.out.println("ChatWebSocketHandler: " + message.getPayload() + " --- " + session.getUri().getQuery() + " : " + session.getUri().getPath());
+//            System.out.println("ChatWebSocketHandler: " + message.getPayload() + " --- " + session.getUri().getQuery() + " : " + session.getUri().getPath());
 
             if (session.getUri().getQuery().contains("&")) {
                 // server message
@@ -122,7 +124,25 @@ public class PrivateServerChatWebSocketHandler extends TextWebSocketHandler {
     // removes the connection when a client closes it.
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        System.out.println("ChatWebSocketHandler webSocket-error-status: " + status.getReason() + " : " + status.getCode());
+//        System.out.println("ChatWebSocketHandler webSocket-error-status: " + status.getReason() + " : " + status.getCode());
+
+        // remove webSockets
+        if (session.getUri().getQuery().contains("&")) {
+            // server webSocket
+            String username = session.getUri().getQuery().substring(session.getUri().getQuery().indexOf("user=") + 5, session.getUri().getQuery().indexOf("&"));
+            String serverId = session.getUri().getQuery().substring(session.getUri().getQuery().indexOf("serverId=") + 9);
+            String key = username + "&" + serverId;
+
+            userWebSocketSessionsMap.remove(key);
+            System.out.println("ChatWebSocket server removed: " + username + " " + serverId + " : " + status.getReason() + " : " + status.getCode());
+        } else {
+            // private chat webSocket
+            String username = session.getUri().getQuery().substring(session.getUri().getQuery().indexOf("=") + 1);
+
+            userWebSocketSessionsMap.remove(username);
+            System.out.println("ChatWebSocket private chat removed: " + username + " : " + status.getReason() + " : " + status.getCode());
+        }
+
         userWebSocketSessionsMap.remove(session);
     }
 }

@@ -7,6 +7,7 @@ import com.accordserver.accessingdatamysql.user.User;
 import com.accordserver.accessingdatamysql.user.UserRepository;
 import com.accordserver.accessingdatamysql.învites.Invites;
 import com.accordserver.accessingdatamysql.învites.InvitesRepository;
+import com.accordserver.webSocket.SystemWebSocketHandler;
 import com.github.cliftonlabs.json_simple.JsonArray;
 import com.github.cliftonlabs.json_simple.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,9 @@ public class InvitesController {
     @Autowired
     private ServerRepository serverRepository;
 
+    @Autowired
+    private SystemWebSocketHandler systemWebSocketHandler;
+
     /**
      * creates a new invite
      *
@@ -46,7 +50,7 @@ public class InvitesController {
             // create invite and save it
             Invites newInvite = new Invites(data.get("type").toString(), currentServer);
 
-            if (newInvite.getType().equals("count")) {
+            if (newInvite.getType().equals(COUNT)) {
                 // with limit
                 newInvite.setMax((Integer) data.get("max"));
 
@@ -117,6 +121,54 @@ public class InvitesController {
             return new ResponseMessage(SUCCESS, "", responseInvitesDataList);
         } else {
             return new ResponseMessage(FAILED, "This is not your server!", new JsonObject());
+        }
+    }
+
+    /**
+     * join an invitation
+     *
+     * @param userKey  key of the user
+     * @param serverId where the user what to join
+     * @param inviteId id of the invitation
+     * @return rest answer
+     */
+    @PostMapping("/servers/{serverId}/invites/{inviteId}")
+    public @ResponseBody
+    ResponseMessage joinInvitation(@RequestBody Map<String, Object> data, @RequestHeader(value = USER_KEY) String userKey, @PathVariable("serverId") String serverId, @PathVariable("inviteId") String inviteId) {
+        User currentUser = userRepository.findByUserKey(userKey);
+        Server currentServer = serverRepository.findById(serverId).get();
+
+        if (currentUser.getName().equals(data.get("name").toString()) && currentUser.getPassword().equals(data.get("password").toString())) {
+
+            if (invitesRepository.findById(inviteId).isPresent()) {
+                Invites currentInvite = invitesRepository.findById(inviteId).get();
+
+                // set new member and save it
+                currentServer.setMembers(currentUser);
+                currentUser.setMemberServers(currentServer);
+                serverRepository.save(currentServer);
+                userRepository.save(currentUser);
+
+                if (currentInvite.getType().equals(COUNT)) {
+                    // increase count by 1 and delete invite if max count is reached
+                    currentInvite.setCurrent(currentInvite.getCurrent() + 1);
+                    if (currentInvite.getCurrent() == currentInvite.getMax()) {
+                        invitesRepository.delete(currentInvite);
+                    } else {
+                        invitesRepository.save(currentInvite);
+                    }
+                }
+
+                // send webSocket message
+                systemWebSocketHandler.sendUserArrived(currentServer, currentUser);
+
+                // send response
+                return new ResponseMessage(SUCCESS, "Successfully arrived at server", new JsonObject());
+            } else {
+                return new ResponseMessage(FAILED, "Invitation is invalid or expired!", new JsonObject());
+            }
+        } else {
+            return new ResponseMessage(FAILED, "Wrong username and/or password!", new JsonObject());
         }
     }
 }

@@ -22,7 +22,9 @@ import java.util.Map;
 public class SystemWebSocketHandler extends TextWebSocketHandler {
 
     private final List<WebSocketSession> systemWebSocketSessions = new ArrayList<>();
-    private final Map<String, WebSocketSession> serverSystemWebSocketSessions = new HashMap<>();
+    //    private final Map<String, WebSocketSession> serverSystemWebSocketSessions = new HashMap<>();
+    // serverId
+    private final Map<String, Map<String, WebSocketSession>> serverIdUserKeysWebSocketSessions = new HashMap<>();
 
     // add a new connection / session when a client starts one
     @Override
@@ -30,10 +32,23 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
         if (session.getUri().getQuery() != null) {
             // System server session
             String serverId = session.getUri().getQuery().substring(session.getUri().getQuery().indexOf("serverId=") + 9);
-            serverSystemWebSocketSessions.put(serverId, session);
+            String userKey = session.getHandshakeHeaders().get("userKey").toString();
+
+            if (serverIdUserKeysWebSocketSessions.containsKey(serverId)) {
+                serverIdUserKeysWebSocketSessions.get(serverId).put(userKey, session);
+            } else {
+                Map<String, WebSocketSession> userKeySession = new HashMap<>();
+                userKeySession.put(userKey, session);
+                serverIdUserKeysWebSocketSessions.put(serverId, userKeySession);
+            }
+            System.out.println("SystemWebSocket server created: " + userKey + " " + serverId);
+
         } else {
             // System session
             systemWebSocketSessions.add(session);
+
+            String userKey = session.getHandshakeHeaders().get("userKey").toString();
+            System.out.println("SystemWebSocket private created: " + userKey);
         }
     }
 
@@ -52,8 +67,27 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
     // removes the connection when a client closes it.
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
-        System.out.println("SystemWebSocketHandler webSocket-error-status: " + status.getReason() + " : " + status.getCode());
-        systemWebSocketSessions.remove(session);
+
+        if (session.getUri().getQuery() != null) {
+            // System server session
+            String serverId = session.getUri().getQuery().substring(session.getUri().getQuery().indexOf("serverId=") + 9);
+            String userKey = session.getHandshakeHeaders().get("userKey").toString();
+            if (serverIdUserKeysWebSocketSessions.containsKey(serverId)) {
+                // remove user session
+                serverIdUserKeysWebSocketSessions.get(serverId).remove(userKey);
+                // remove server map if empty
+                if (serverIdUserKeysWebSocketSessions.get(serverId).size() == 0) {
+                    serverIdUserKeysWebSocketSessions.remove(serverId);
+                }
+            }
+            System.out.println("ChatWebSocket server removed: " + userKey + " " + serverId + " : " + status.getReason() + " : " + status.getCode());
+        } else {
+            // System session
+            systemWebSocketSessions.remove(session);
+
+            String userKey = session.getHandshakeHeaders().get("userKey").toString();
+            System.out.println("ChatWebSocket server removed: " + userKey + " : " + status.getReason() + " : " + status.getCode());
+        }
     }
 
     @Bean
@@ -109,14 +143,12 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
         serverData.put("id", updatedServer.getId());
         jsonObject.put("data", serverData);
 
-        // send updatedName to all members in a server with jsonObject
-        for (Map.Entry<String, WebSocketSession> entry : serverSystemWebSocketSessions.entrySet()) {
-            if (entry.getKey().equals(updatedServer.getId())) {
-                try {
-                    entry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        // send updatedName to all members in this server with jsonObject
+        for (Map.Entry<String, WebSocketSession> userKeySessionEntry : serverIdUserKeysWebSocketSessions.get(updatedServer.getId()).entrySet()) {
+            try {
+                userKeySessionEntry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
@@ -135,14 +167,12 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
         categoryData.put("name", newCategory.getName());
         jsonObject.put("data", categoryData);
 
-        // send updatedName to all members in a server with jsonObject
-        for (Map.Entry<String, WebSocketSession> entry : serverSystemWebSocketSessions.entrySet()) {
-            if (entry.getKey().equals(currentServer.getId())) {
-                try {
-                    entry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        // send newCategory to all members in this server with jsonObject
+        for (Map.Entry<String, WebSocketSession> userKeySessionEntry : serverIdUserKeysWebSocketSessions.get(currentServer.getId()).entrySet()) {
+            try {
+                userKeySessionEntry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
@@ -161,14 +191,12 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
         categoryData.put("name", updatedCategory.getName());
         jsonObject.put("data", categoryData);
 
-        // send updatedName to all members in a server with jsonObject
-        for (Map.Entry<String, WebSocketSession> entry : serverSystemWebSocketSessions.entrySet()) {
-            if (entry.getKey().equals(currentServer.getId())) {
-                try {
-                    entry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        // send updatedName to all members in this server with jsonObject
+        for (Map.Entry<String, WebSocketSession> userKeySessionEntry : serverIdUserKeysWebSocketSessions.get(currentServer.getId()).entrySet()) {
+            try {
+                userKeySessionEntry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
@@ -191,14 +219,12 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
 
         jsonObject.put("data", channelData);
 
-        // send created channel to all members in a server with jsonObject
-        for (Map.Entry<String, WebSocketSession> entry : serverSystemWebSocketSessions.entrySet()) {
-            if (entry.getKey().equals(currentServer.getId())) {
-                try {
-                    entry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        // send newChannel to all members in this server with jsonObject
+        for (Map.Entry<String, WebSocketSession> userKeySessionEntry : serverIdUserKeysWebSocketSessions.get(currentServer.getId()).entrySet()) {
+            try {
+                userKeySessionEntry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
@@ -228,14 +254,12 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
 
         jsonObject.put("data", channelData);
 
-        // send updatedChannel to all members in a server with jsonObject
-        for (Map.Entry<String, WebSocketSession> entry : serverSystemWebSocketSessions.entrySet()) {
-            if (entry.getKey().equals(currentServer.getId())) {
-                try {
-                    entry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        // send updatedChannel to all members in this server with jsonObject
+        for (Map.Entry<String, WebSocketSession> userKeySessionEntry : serverIdUserKeysWebSocketSessions.get(currentServer.getId()).entrySet()) {
+            try {
+                userKeySessionEntry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
@@ -255,17 +279,41 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
 
         jsonObject.put("data", messageData);
 
-        // send updatedMessage to all members in a server with jsonObject
-        for (Map.Entry<String, WebSocketSession> entry : serverSystemWebSocketSessions.entrySet()) {
-            if (entry.getKey().equals(currentServer.getId())) {
-                try {
-                    entry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        // send updatedMessage to all members in this server with jsonObject
+        for (Map.Entry<String, WebSocketSession> userKeySessionEntry : serverIdUserKeysWebSocketSessions.get(currentServer.getId()).entrySet()) {
+            try {
+                userKeySessionEntry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
         System.out.println("message updated: " + updatedMessage.getContent() + " " + updatedMessage.getId());
+    }
+
+    @Bean
+    public void sendUserArrived(Server currentServer, User arrivedUser) {
+        // broadcast messageUpdated message to all connections / clients
+
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.put("action", "userArrived");
+
+        JsonObject arrivedUserData = new JsonObject();
+        arrivedUserData.put("id", arrivedUser.getId());
+        arrivedUserData.put("name", arrivedUser.getName());
+        arrivedUserData.put("online", arrivedUser.isOnline());
+
+        jsonObject.put("data", arrivedUserData);
+
+        // send arrivedUserData to all members in this server with jsonObject
+        for (Map.Entry<String, WebSocketSession> userKeySessionEntry : serverIdUserKeysWebSocketSessions.get(currentServer.getId()).entrySet()) {
+            try {
+                userKeySessionEntry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        System.out.println("user arrived: " + arrivedUser.getName() + " " + arrivedUser.getId() + " at server: " + currentServer.getName() + " " + currentServer.getId());
     }
 }

@@ -102,6 +102,7 @@ public class ServerController {
         responseServerData.put("owner", currentServer.getOwner());
         responseServerData.put("categories", new JsonArray().addAll(currentServer.getCategories()));
 
+        // add members
         JsonArray jsonArray = new JsonArray();
         for (User user : currentServer.getMembers()) {
             JsonObject jsonObject = new JsonObject();
@@ -128,7 +129,7 @@ public class ServerController {
     ResponseMessage getServers(@RequestHeader(value = USER_KEY) String userKey) {
         User currentUser = userRepository.findByUserKey(userKey);
 
-        List<Server> serverList = (List<Server>) serverRepository.findByOwner(currentUser.getId());
+        List<Server> serverList = (List<Server>) serverRepository.findByMembersId(currentUser.getId());
 
         JsonArray responseServerDataList = new JsonArray();
         for (Server server : serverList) {
