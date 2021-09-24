@@ -77,7 +77,7 @@ public class Channels {
     @Override
     public String toString() {
         return String.format(
-                "User[id=%d, name='%s', type='%s', privileged='%b']",
+                "User[id=%s, name='%s', type='%s', privileged='%b']",
                 id, name, type, privileged);
     }
 

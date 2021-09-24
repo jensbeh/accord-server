@@ -42,7 +42,7 @@ public class Messages {
     @Override
     public String toString() {
         return String.format(
-                "Messages[id=%d, content='%s', from='%s', timestamp='%s']",
+                "Messages[id=%s, content='%s', from='%s', timestamp='%s']",
                 id, content, fromUser, timestampMessage);
     }
 

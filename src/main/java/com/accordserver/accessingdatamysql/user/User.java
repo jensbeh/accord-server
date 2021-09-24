@@ -73,7 +73,7 @@ public class User {
     @Override
     public String toString() {
         return String.format(
-                "User[id=%d, name='%s', password='%s']",
+                "User[id=%s, name='%s', password='%s']",
                 id, name, password);
     }
 

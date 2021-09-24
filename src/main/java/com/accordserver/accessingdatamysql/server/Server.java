@@ -3,6 +3,7 @@ package com.accordserver.accessingdatamysql.server;
 import com.accordserver.accessingdatamysql.categories.Categories;
 import com.accordserver.accessingdatamysql.channels.Channels;
 import com.accordserver.accessingdatamysql.user.User;
+import com.accordserver.accessingdatamysql.învites.Invites;
 import com.accordserver.util.HexId;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
@@ -48,6 +49,14 @@ public class Server {
     )
     private List<Channels> channels = new ArrayList<>();
 
+    // invites
+    @OneToMany(
+            mappedBy = "server",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Invites> invites = new ArrayList<>();
+
     /**
      * The default constructor exists only for the sake of JPA/MySQL. You do not use it directly, so it is designated as protected.
      */
@@ -65,7 +74,7 @@ public class Server {
     @Override
     public String toString() {
         return String.format(
-                "Server[id=%d, name='%s']",
+                "Server[id=%s, name='%s']",
                 id, name);
     }
 
@@ -125,5 +134,13 @@ public class Server {
 
     public void setMembers(User member) {
         this.members.add(member);
+    }
+
+    public List<Invites> getInvites() {
+        return invites;
+    }
+
+    public void setInvites(Invites invite) {
+        this.invites.add(invite);
     }
 }

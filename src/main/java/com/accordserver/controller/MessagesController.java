@@ -84,7 +84,6 @@ public class MessagesController {
      * @param userKey key of the user
      * @return json list of all server
      */
-    //PUT /servers/:id/categories/:catId/channels/:chanId/messages/:msgId
     @PutMapping("/servers/{serverId}/categories/{categoryId}/channels/{channelId}/messages/{messageId}")
     public @ResponseBody
     ResponseMessage updateMessage(@RequestBody Map<String, Object> data, @RequestHeader(value = USER_KEY) String userKey, @PathVariable("serverId") String serverId, @PathVariable("categoryId") String categoryId, @PathVariable("channelId") String channelId, @PathVariable("messageId") String messageId) {
