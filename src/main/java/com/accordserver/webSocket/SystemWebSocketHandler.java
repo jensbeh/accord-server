@@ -1,8 +1,10 @@
 package com.accordserver.webSocket;
 
 import com.accordserver.accessingdatamysql.categories.Categories;
+import com.accordserver.accessingdatamysql.channels.Channels;
 import com.accordserver.accessingdatamysql.server.Server;
 import com.accordserver.accessingdatamysql.user.User;
+import com.github.cliftonlabs.json_simple.JsonArray;
 import com.github.cliftonlabs.json_simple.JsonObject;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.socket.CloseStatus;
@@ -106,7 +108,7 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
         serverData.put("id", updatedServer.getId());
         jsonObject.put("data", serverData);
 
-        // send updatedName to all members with jsonObject
+        // send updatedName to all members in a server with jsonObject
         for (Map.Entry<String, WebSocketSession> entry : serverSystemWebSocketSessions.entrySet()) {
             if (entry.getKey().equals(updatedServer.getId())) {
                 try {
@@ -132,7 +134,7 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
         categoryData.put("name", createdCategory.getName());
         jsonObject.put("data", categoryData);
 
-        // send updatedName to all members with jsonObject
+        // send updatedName to all members in a server with jsonObject
         for (Map.Entry<String, WebSocketSession> entry : serverSystemWebSocketSessions.entrySet()) {
             if (entry.getKey().equals(currentServer.getId())) {
                 try {
@@ -158,7 +160,7 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
         categoryData.put("name", updatedCategory.getName());
         jsonObject.put("data", categoryData);
 
-        // send updatedName to all members with jsonObject
+        // send updatedName to all members in a server with jsonObject
         for (Map.Entry<String, WebSocketSession> entry : serverSystemWebSocketSessions.entrySet()) {
             if (entry.getKey().equals(currentServer.getId())) {
                 try {
@@ -170,5 +172,72 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
         }
 
         System.out.println("category updated: " + updatedCategory.getName() + " " + updatedCategory.getId());
+    }
+
+    @Bean
+    public void sendChannelCreated(Server currentServer, Categories currentCategory, Channels newChannel) {
+        // broadcast channelCreated message to all connections / clients
+
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.put("action", "channelCreated");
+
+        JsonObject channelData = new JsonObject();
+        channelData.put("id", newChannel.getId());
+        channelData.put("name", newChannel.getName());
+        channelData.put("type", newChannel.getType());
+        channelData.put("privileged", newChannel.isPrivileged());
+        channelData.put("category", currentCategory.getId());
+
+        jsonObject.put("data", channelData);
+
+        // send created channel to all members in a server with jsonObject
+        for (Map.Entry<String, WebSocketSession> entry : serverSystemWebSocketSessions.entrySet()) {
+            if (entry.getKey().equals(currentServer.getId())) {
+                try {
+                    entry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        System.out.println("channel created: " + newChannel.getName() + " " + newChannel.getId());
+    }
+
+    @Bean
+    public void sendChannelUpdated(Server currentServer, Categories currentCategory, Channels currentChannel) {
+        // broadcast channelUpdated message to all connections / clients
+
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.put("action", "channelUpdated");
+
+        JsonObject channelData = new JsonObject();
+        channelData.put("category", currentCategory.getId());
+        channelData.put("id", currentChannel.getId());
+        channelData.put("name", currentChannel.getName());
+        channelData.put("type", currentChannel.getType());
+        channelData.put("privileged", currentChannel.isPrivileged());
+
+        // add privileged member
+        JsonArray jsonArrayPrivilegedMember = new JsonArray();
+        for (User user : currentChannel.getPrivilegedMember()) {
+            jsonArrayPrivilegedMember.add(user.getId());
+        }
+        channelData.put("members", jsonArrayPrivilegedMember);
+
+        jsonObject.put("data", channelData);
+
+        // send updatedChannel to all members in a server with jsonObject
+        for (Map.Entry<String, WebSocketSession> entry : serverSystemWebSocketSessions.entrySet()) {
+            if (entry.getKey().equals(currentServer.getId())) {
+                try {
+                    entry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        System.out.println("channel updated: " + currentChannel.getName() + " " + currentChannel.getId());
     }
 }

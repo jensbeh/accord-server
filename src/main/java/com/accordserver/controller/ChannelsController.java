@@ -9,6 +9,7 @@ import com.accordserver.accessingdatamysql.server.Server;
 import com.accordserver.accessingdatamysql.server.ServerRepository;
 import com.accordserver.accessingdatamysql.user.User;
 import com.accordserver.accessingdatamysql.user.UserRepository;
+import com.accordserver.webSocket.SystemWebSocketHandler;
 import com.github.cliftonlabs.json_simple.JsonArray;
 import com.github.cliftonlabs.json_simple.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,9 @@ public class ChannelsController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private SystemWebSocketHandler systemWebSocketHandler;
+
     /**
      * creates a new channel
      * WHO CAN DO? -> OWNER
@@ -47,17 +51,20 @@ public class ChannelsController {
     @PostMapping("/servers/{serverId}/categories/{categoryId}/channels") // Map ONLY POST Requests - createCategory
     public @ResponseBody
     ResponseMessage createChannel(@RequestBody Map<String, Object> data, @RequestHeader(value = USER_KEY) String userKey, @PathVariable("serverId") String serverId, @PathVariable("categoryId") String categoryId) {
-
         User currentUser = userRepository.findByUserKey(userKey);
         Server currentServer = serverRepository.findById(serverId).get();
 
         if (currentUser.getId().equals(currentServer.getOwner())) {
             Categories currentCategory = categoriesRepository.findById(categoryId).get();
+            // create channel and save it
             Channels newChannel = new Channels(data.get("name").toString(), data.get("type").toString(), (boolean) data.get("privileged"), currentCategory, currentServer);
 
             currentCategory.setChannel(newChannel);
 
             categoriesRepository.save(currentCategory);
+
+            // send webSocket message
+            systemWebSocketHandler.sendChannelCreated(currentServer, currentCategory, newChannel);
 
             JsonObject responseData = new JsonObject();
             responseData.put("id", newChannel.getId());
@@ -65,6 +72,8 @@ public class ChannelsController {
             responseData.put("type", newChannel.getType());
             responseData.put("privileged", newChannel.isPrivileged());
             responseData.put("category", currentCategory.getId());
+            responseData.put("members", new JsonArray());
+            responseData.put("audioMembers", new JsonArray());
 
             return new ResponseMessage(SUCCESS, "", responseData);
         } else {
@@ -114,5 +123,66 @@ public class ChannelsController {
         }
 
         return new ResponseMessage(SUCCESS, "", responseChannelDataList);
+    }
+
+    /**
+     * update channel
+     * WHO CAN DO? -> ONLY OWNER
+     *
+     * @param userKey key of the user
+     * @return json list of all server
+     */
+    @PutMapping("/servers/{serverId}/categories/{categoryId}/channels/{channelId}")
+    public @ResponseBody
+    ResponseMessage updateChannel(@RequestBody Map<String, Object> data, @RequestHeader(value = USER_KEY) String userKey, @PathVariable("serverId") String serverId, @PathVariable("categoryId") String categoryId, @PathVariable("channelId") String channelId) {
+        User currentUser = userRepository.findByUserKey(userKey);
+
+        Server currentServer = serverRepository.findById(serverId).get();
+        Categories currentCategory = categoriesRepository.findById(categoryId).get();
+        Channels currentChannel = channelsRepository.findById(channelId).get();
+
+        if (currentServer.getOwner().equals(currentUser.getId())) {
+            String newChannelName = data.get("name").toString();
+
+            // set privileged
+            boolean privileged = (boolean) data.get("privileged");
+            if (currentChannel.isPrivileged()) {
+                JsonArray privilegedMemberIds = (JsonArray) data.get("members");
+                System.out.println("privilegedMemberIds: " + privilegedMemberIds);
+            }
+
+            // update channel
+            currentChannel.setName(newChannelName);
+            channelsRepository.save(currentChannel);
+
+            // send webSocket message
+            systemWebSocketHandler.sendChannelUpdated(currentServer, currentCategory, currentChannel);
+
+            // return json
+            JsonObject responseChannelData = new JsonObject();
+            responseChannelData.put("id", currentChannel.getId());
+            responseChannelData.put("name", currentChannel.getName());
+            responseChannelData.put("type", currentChannel.getType());
+            responseChannelData.put("privileged", currentChannel.isPrivileged());
+            responseChannelData.put("category", currentCategory.getId());
+
+            // add privileged member
+            JsonArray jsonArrayPrivilegedMember = new JsonArray();
+            for (User user : currentChannel.getPrivilegedMember()) {
+                jsonArrayPrivilegedMember.add(user.getId());
+            }
+            responseChannelData.put("members", jsonArrayPrivilegedMember);
+
+            // add audio member
+            JsonArray jsonArrayAudioMember = new JsonArray();
+            for (User user : currentChannel.getAudioMember()) {
+                jsonArrayAudioMember.add(user.getId());
+            }
+            responseChannelData.put("audioMembers", jsonArrayAudioMember);
+
+            return new ResponseMessage(SUCCESS, "", responseChannelData);
+        } else {
+            return new ResponseMessage(FAILED, "This is not your server!", new JsonObject());
+        }
     }
 }
