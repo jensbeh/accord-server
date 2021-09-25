@@ -346,6 +346,31 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
     }
 
     @Bean
+    public void sendUserExited(Server currentServer, User exitedUser) {
+        // broadcast messageUpdated message to all connections / clients
+
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.put("action", "userExited");
+
+        JsonObject exitedUserData = new JsonObject();
+        exitedUserData.put("id", exitedUser.getId());
+        exitedUserData.put("name", exitedUser.getName());
+
+        jsonObject.put("data", exitedUserData);
+
+        // send exitedUserData to all members in this server with jsonObject
+        for (Map.Entry<String, WebSocketSession> userKeySessionEntry : serverIdUserKeysWebSocketSessions.get(currentServer.getId()).entrySet()) {
+            try {
+                userKeySessionEntry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        System.out.println("user exited: " + exitedUser.getName() + " " + exitedUser.getId() + " at server: " + currentServer.getName() + " " + currentServer.getId());
+    }
+
+    @Bean
     public void sendServerDeleted(Server deletedServer, User currentUser) {
         // broadcast serverDeleted message to all connections / clients
 

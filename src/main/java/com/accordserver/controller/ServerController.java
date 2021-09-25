@@ -207,4 +207,33 @@ public class ServerController {
             return new ResponseMessage(FAILED, "This is not your server!", new JsonObject());
         }
     }
+
+    /**
+     * leave the server
+     * WHO CAN DO? -> ONLY MEMBER BUT NOT THE OWNER
+     *
+     * @param userKey key of the user
+     * @return json list of all server
+     */
+    @PostMapping("/servers/{serverId}/leave")
+    public @ResponseBody
+    ResponseMessage leaveServer(@RequestHeader(value = USER_KEY) String userKey, @PathVariable("serverId") String serverId) {
+        User currentUser = userRepository.findByUserKey(userKey);
+
+        Server currentServer = serverRepository.findById(serverId).get();
+
+        if (!currentServer.getOwner().equals(currentUser.getId())) {
+
+            // leave server
+            currentServer.getUsers().remove(currentUser);
+            serverRepository.save(currentServer);
+
+            // send webSocket message
+            systemWebSocketHandler.sendUserExited(currentServer, currentUser);
+
+            return new ResponseMessage(SUCCESS, "Successfully exited", new JsonObject());
+        } else {
+            return new ResponseMessage(FAILED, "You are the Owner of the server! You can't leave! You can only delete the whole server!", new JsonObject());
+        }
+    }
 }
