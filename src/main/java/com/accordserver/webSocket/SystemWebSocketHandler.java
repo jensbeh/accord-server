@@ -109,6 +109,20 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
                 e.printStackTrace();
             }
         }
+
+        // iterate over all server of the user and check if other user are also there and send there the message to all
+        for (Server server : user.getServers()) {
+            if (serverIdUserKeysWebSocketSessions.containsKey(server.getId())) {
+                // send userJoined to all members in this server with jsonObject
+                for (Map.Entry<String, WebSocketSession> userKeySessionEntry : serverIdUserKeysWebSocketSessions.get(server.getId()).entrySet()) {
+                    try {
+                        userKeySessionEntry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
     }
 
     @Bean
@@ -128,6 +142,20 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
                 webSocketSession.sendMessage(new TextMessage(jsonObject.toJson()));
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+        }
+
+        // iterate over all server of the user and check if other user are also there and send there the message to all
+        for (Server server : user.getServers()) {
+            if (serverIdUserKeysWebSocketSessions.containsKey(server.getId())) {
+                // send userLeft to all members in this server with jsonObject
+                for (Map.Entry<String, WebSocketSession> userKeySessionEntry : serverIdUserKeysWebSocketSessions.get(server.getId()).entrySet()) {
+                    try {
+                        userKeySessionEntry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
     }
