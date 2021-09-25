@@ -86,7 +86,7 @@ public class PrivateServerChatWebSocketHandler extends TextWebSocketHandler {
 
                 // send message to all members with readyJsonObject
                 Server currentServer = serverRepository.findById(serverId).get();
-                for (User member : currentServer.getMembers()) {
+                for (User member : currentServer.getUsers()) {
                     String key = member.getName() + "&" + serverId;
                     if (userWebSocketSessionsMap.containsKey(key)) { // send to ALL users in the channel
                         userWebSocketSessionsMap.get(key).sendMessage(new TextMessage(readyJsonObject.toJson()));
@@ -134,7 +134,7 @@ public class PrivateServerChatWebSocketHandler extends TextWebSocketHandler {
             String key = username + "&" + serverId;
 
             userWebSocketSessionsMap.remove(key);
-            System.out.println("ChatWebSocket server removed: " + username + " " + serverId + " : " + status.getReason() + " : " + status.getCode());
+            System.out.println("ChatWebSocket server chat removed: " + username + " " + serverId + " : " + status.getReason() + " : " + status.getCode());
         } else {
             // private chat webSocket
             String username = session.getUri().getQuery().substring(session.getUri().getQuery().indexOf("=") + 1);

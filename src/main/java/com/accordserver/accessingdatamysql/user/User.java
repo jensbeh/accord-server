@@ -7,7 +7,9 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 // @Entity tells Hibernate to make a table out of this class. Hibernate automatically translates the entity into a table.
@@ -28,19 +30,9 @@ public class User {
     @Column(columnDefinition = "VARCHAR(36)")
     private String userKey;
 
-    @ManyToMany
-    @JoinTable(
-            name = "user_server",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "server_id"))
-    private List<Server> servers = new ArrayList<>();
-
-    @ManyToMany
-    @JoinTable(
-            name = "member_server",
-            joinColumns = @JoinColumn(name = "member_id"),
-            inverseJoinColumns = @JoinColumn(name = "server_id"))
-    private List<Server> memberServers = new ArrayList<>();
+    // servers
+    @ManyToMany(mappedBy = "users")
+    private Set<Server> servers = new HashSet<>();
 
     // privileged Member / Channel
     @ManyToMany
@@ -110,20 +102,12 @@ public class User {
         return this;
     }
 
-    public List<Server> getServers() {
+    public Set<Server> getServers() {
         return servers;
     }
 
-    public void setServer(Server server) {
+    public void setServers(Server server) {
         this.servers.add(server);
-    }
-
-    public List<Server> getMemberServers() {
-        return memberServers;
-    }
-
-    public void setMemberServers(Server memberServer) {
-        this.memberServers.add(memberServer);
     }
 
     public String getDescription() {

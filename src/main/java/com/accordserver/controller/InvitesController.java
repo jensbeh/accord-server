@@ -144,8 +144,8 @@ public class InvitesController {
                 Invites currentInvite = invitesRepository.findById(inviteId).get();
 
                 // set new member and save it
-                currentServer.setMembers(currentUser);
-                currentUser.setMemberServers(currentServer);
+                currentServer.setUser(currentUser);
+                currentUser.setServers(currentServer);
                 serverRepository.save(currentServer);
                 userRepository.save(currentUser);
 

@@ -80,13 +80,13 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
                     serverIdUserKeysWebSocketSessions.remove(serverId);
                 }
             }
-            System.out.println("ChatWebSocket server removed: " + userKey + " " + serverId + " : " + status.getReason() + " : " + status.getCode());
+            System.out.println("ServerSystemWebSocket server removed: " + userKey + " " + serverId + " : " + status.getReason() + " : " + status.getCode());
         } else {
             // System session
             systemWebSocketSessions.remove(session);
 
             String userKey = session.getHandshakeHeaders().get("userKey").toString();
-            System.out.println("ChatWebSocket server removed: " + userKey + " : " + status.getReason() + " : " + status.getCode());
+            System.out.println("SystemWebSocket server removed: " + userKey + " : " + status.getReason() + " : " + status.getCode());
         }
     }
 
@@ -315,5 +315,30 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
         }
 
         System.out.println("user arrived: " + arrivedUser.getName() + " " + arrivedUser.getId() + " at server: " + currentServer.getName() + " " + currentServer.getId());
+    }
+
+    @Bean
+    public void sendServerDeleted(Server deletedServer, User currentUser) {
+        // broadcast serverDeleted message to all connections / clients
+
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.put("action", "serverDeleted");
+
+        JsonObject deletedServerData = new JsonObject();
+        deletedServerData.put("id", deletedServer.getId());
+        deletedServerData.put("name", deletedServer.getName());
+
+        jsonObject.put("data", deletedServerData);
+
+        // send serverDeletedData to all members in this server with jsonObject
+        for (Map.Entry<String, WebSocketSession> userKeySessionEntry : serverIdUserKeysWebSocketSessions.get(deletedServer.getId()).entrySet()) {
+            try {
+                userKeySessionEntry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        System.out.println("deleted Server: " + deletedServer.getName() + " " + deletedServer.getId());
     }
 }

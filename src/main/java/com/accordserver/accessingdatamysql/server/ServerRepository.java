@@ -10,5 +10,5 @@ import org.springframework.data.repository.CrudRepository;
 public interface ServerRepository extends CrudRepository<Server, String> {
     Iterable<Server> findByOwner(String userKey);
 
-    Iterable<Server> findByMembersId(String id);
+    Iterable<Server> findByUsersId(String userId);
 }

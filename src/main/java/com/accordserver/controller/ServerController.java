@@ -64,15 +64,11 @@ public class ServerController {
         newServer.setCategory(newCategory).setChannel(newChannel);
 
         // set currentUser to the first Member
-        newServer.setMembers(currentUser);
-        currentUser.setMemberServers(newServer);
+        newServer.setUser(currentUser);
 
         serverRepository.save(newServer);
         categoriesRepository.save(newCategory);
         channelsRepository.save(newChannel);
-
-        currentUser.setServer(newServer);
-        userRepository.save(currentUser);
 
         JsonObject serverData = new JsonObject();
         serverData.put("id", newServer.getId());
@@ -104,7 +100,7 @@ public class ServerController {
 
         // add members
         JsonArray jsonArray = new JsonArray();
-        for (User user : currentServer.getMembers()) {
+        for (User user : currentServer.getUsers()) {
             JsonObject jsonObject = new JsonObject();
             jsonObject.put("id", user.getId());
             jsonObject.put("name", user.getName());
@@ -129,7 +125,7 @@ public class ServerController {
     ResponseMessage getServers(@RequestHeader(value = USER_KEY) String userKey) {
         User currentUser = userRepository.findByUserKey(userKey);
 
-        List<Server> serverList = (List<Server>) serverRepository.findByMembersId(currentUser.getId());
+        List<Server> serverList = (List<Server>) serverRepository.findByUsersId(currentUser.getId());
 
         JsonArray responseServerDataList = new JsonArray();
         for (Server server : serverList) {
@@ -167,6 +163,39 @@ public class ServerController {
 
             // send webSocket message
             systemWebSocketHandler.sendServerUpdated(currentServer);
+
+            // return json
+            JsonObject serverData = new JsonObject();
+            serverData.put("id", currentServer.getId());
+            serverData.put("name", currentServer.getName());
+
+            return new ResponseMessage(SUCCESS, "", serverData);
+        } else {
+            return new ResponseMessage(FAILED, "This is not your server!", new JsonObject());
+        }
+    }
+
+    /**
+     * Change server name
+     * WHO CAN DO? -> ONLY OWNER
+     *
+     * @param userKey key of the user
+     * @return json list of all server
+     */
+    @DeleteMapping("/servers/{serverId}")
+    public @ResponseBody
+    ResponseMessage deleteServer(@RequestHeader(value = USER_KEY) String userKey, @PathVariable("serverId") String serverId) {
+        User currentUser = userRepository.findByUserKey(userKey);
+
+        Server currentServer = serverRepository.findById(serverId).get();
+
+        if (currentServer.getOwner().equals(currentUser.getId())) {
+
+            // delete server
+            serverRepository.delete(currentServer);
+
+            // send webSocket message
+            systemWebSocketHandler.sendServerDeleted(currentServer, currentUser);
 
             // return json
             JsonObject serverData = new JsonObject();

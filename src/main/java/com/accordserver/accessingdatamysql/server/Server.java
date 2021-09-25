@@ -10,7 +10,9 @@ import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 // @Entity tells Hibernate to make a table out of this class. Hibernate automatically translates the entity into a table.
@@ -24,14 +26,13 @@ public class Server {
     private String owner;
 
     // user
-    @ManyToMany(mappedBy = "servers")
-    private List<User> users = new ArrayList<>();
-
-    // members
     @LazyCollection(LazyCollectionOption.FALSE)
-    @ManyToMany(mappedBy = "memberServers",
-            cascade = CascadeType.ALL)
-    private List<User> members = new ArrayList<>();
+    @ManyToMany
+    @JoinTable(
+            name = "user_server",
+            joinColumns = @JoinColumn(name = "server_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
+    private Set<User> users = new HashSet<>();
 
     // categories
     @OneToMany(
@@ -102,7 +103,7 @@ public class Server {
         return this;
     }
 
-    public List<User> getUsers() {
+    public Set<User> getUsers() {
         return users;
     }
 
@@ -126,14 +127,6 @@ public class Server {
     public Server setChannel(Channels channel) {
         this.channels.add(channel);
         return this;
-    }
-
-    public List<User> getMembers() {
-        return members;
-    }
-
-    public void setMembers(User member) {
-        this.members.add(member);
     }
 
     public List<Invites> getInvites() {
