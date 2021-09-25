@@ -120,6 +120,45 @@ public class MessagesController {
         } else {
             return new ResponseMessage(FAILED, "This is not your message!", new JsonObject());
         }
+    }
 
+    /**
+     * deletes a message
+     * WHO CAN DO? -> PERSON WHO WRITES THE MESSAGE
+     *
+     * @param userKey key of the user
+     * @return json list of all server
+     */
+    @DeleteMapping("/servers/{serverId}/categories/{categoryId}/channels/{channelId}/messages/{messageId}")
+    public @ResponseBody
+    ResponseMessage deleteMessage(@RequestHeader(value = USER_KEY) String userKey, @PathVariable("serverId") String serverId, @PathVariable("categoryId") String categoryId, @PathVariable("channelId") String channelId, @PathVariable("messageId") String messageId) {
+        User currentUser = userRepository.findByUserKey(userKey);
+
+        Server currentServer = serverRepository.findById(serverId).get();
+        Categories currentCategory = categoriesRepository.findById(categoryId).get();
+        Channels currentChannel = channelsRepository.findById(channelId).get();
+        Messages currentMessage = messagesRepository.findById(messageId).get();
+
+        if (currentMessage.getFromUser().equals(currentUser.getName())) {
+
+            // delete message by channel message list (because of one-to-many association)
+            currentChannel.removeMessage(currentMessage);
+            channelsRepository.save(currentChannel);
+
+            // send webSocket message
+            systemWebSocketHandler.sendMessageDeleted(currentServer, currentCategory, currentChannel, currentMessage, currentUser);
+
+            // return json
+            JsonObject channelData = new JsonObject();
+            channelData.put("id", currentMessage.getId());
+            channelData.put("channel", currentChannel.getId());
+            channelData.put("timestamp", currentMessage.getTimestampMessage());
+            channelData.put("from", currentMessage.getFromUser());
+            channelData.put("text", currentMessage.getContent());
+
+            return new ResponseMessage(SUCCESS, "", channelData);
+        } else {
+            return new ResponseMessage(FAILED, "This is not your message!", new JsonObject());
+        }
     }
 }

@@ -368,6 +368,7 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
         System.out.println("deleted Category: " + deletedCategory.getName() + " " + deletedCategory.getId());
     }
 
+    @Bean
     public void sendChannelDeleted(Server currentServer, Categories currentCategory, Channels deletedChannel, User currentUser) {
         // broadcast channelDeleted message to all connections / clients
 
@@ -392,5 +393,32 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
         }
 
         System.out.println("deleted Channel: " + deletedChannel.getName() + " " + deletedChannel.getId());
+    }
+
+    @Bean
+    public void sendMessageDeleted(Server currentServer, Categories currentCategory, Channels currentChannel, Messages deletedMessage, User currentUser) {
+        // broadcast messageDeleted message to all connections / clients
+
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.put("action", "messageDeleted");
+
+        JsonObject deletedMessageData = new JsonObject();
+        deletedMessageData.put("id", deletedMessage.getId());
+        deletedMessageData.put("channel", currentChannel.getId());
+        deletedMessageData.put("category", currentCategory.getId());
+        deletedMessageData.put("server", currentServer.getId());
+
+        jsonObject.put("data", deletedMessageData);
+
+        // send deletedMessageData to all members in this server with jsonObject
+        for (Map.Entry<String, WebSocketSession> userKeySessionEntry : serverIdUserKeysWebSocketSessions.get(currentServer.getId()).entrySet()) {
+            try {
+                userKeySessionEntry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        System.out.println("deleted Message: " + deletedMessage.getContent() + " " + deletedMessage.getFromUser() + " " + deletedMessage.getId());
     }
 }

@@ -152,4 +152,8 @@ public class Channels {
     public void setMessages(Messages message) {
         this.messages.add(message);
     }
+
+    public void removeMessage(Messages currentMessage) {
+        this.messages.remove(currentMessage);
+    }
 }
