@@ -341,4 +341,30 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
 
         System.out.println("deleted Server: " + deletedServer.getName() + " " + deletedServer.getId());
     }
+
+    @Bean
+    public void sendCategoryDeleted(Server currentServer, Categories deletedCategory, User currentUser) {
+        // broadcast categoryDeleted message to all connections / clients
+
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.put("action", "categoryDeleted");
+
+        JsonObject deletedCategoryData = new JsonObject();
+        deletedCategoryData.put("id", deletedCategory.getId());
+        deletedCategoryData.put("name", deletedCategory.getName());
+        deletedCategoryData.put("server", currentServer.getId());
+
+        jsonObject.put("data", deletedCategoryData);
+
+        // send deletedCategoryData to all members in this server with jsonObject
+        for (Map.Entry<String, WebSocketSession> userKeySessionEntry : serverIdUserKeysWebSocketSessions.get(currentServer.getId()).entrySet()) {
+            try {
+                userKeySessionEntry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        System.out.println("deleted Server: " + deletedCategory.getName() + " " + deletedCategory.getId());
+    }
 }

@@ -176,7 +176,7 @@ public class ServerController {
     }
 
     /**
-     * Change server name
+     * delete whole server
      * WHO CAN DO? -> ONLY OWNER
      *
      * @param userKey key of the user

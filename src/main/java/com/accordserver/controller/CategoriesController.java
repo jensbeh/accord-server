@@ -143,4 +143,40 @@ public class CategoriesController {
             return new ResponseMessage(FAILED, "This is not your server!", new JsonObject());
         }
     }
+
+    /**
+     * delete whole category
+     * WHO CAN DO? -> ONLY OWNER
+     *
+     * @param userKey key of the user
+     * @return json list of all server
+     */
+    @DeleteMapping("/servers/{serverId}/categories/{categoryId}")
+    public @ResponseBody
+    ResponseMessage deleteCategory(@RequestHeader(value = USER_KEY) String userKey, @PathVariable("serverId") String serverId, @PathVariable("categoryId") String categoryId) {
+        User currentUser = userRepository.findByUserKey(userKey);
+
+        Server currentServer = serverRepository.findById(serverId).get();
+        Categories currentCategory = categoriesRepository.findById(categoryId).get();
+
+        if (currentServer.getOwner().equals(currentUser.getId())) {
+
+            // delete server
+            categoriesRepository.delete(currentCategory);
+
+            // send webSocket message
+            systemWebSocketHandler.sendCategoryDeleted(currentServer, currentCategory, currentUser);
+
+            // return json
+            JsonObject categoryData = new JsonObject();
+            categoryData.put("id", currentCategory.getId());
+            categoryData.put("name", currentCategory.getName());
+            categoryData.put("server", currentServer.getId());
+            categoryData.put("channels", new JsonArray());
+
+            return new ResponseMessage(SUCCESS, "", categoryData);
+        } else {
+            return new ResponseMessage(FAILED, "This is not your server!", new JsonObject());
+        }
+    }
 }
