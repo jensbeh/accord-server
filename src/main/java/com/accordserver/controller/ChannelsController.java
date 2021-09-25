@@ -185,4 +185,51 @@ public class ChannelsController {
             return new ResponseMessage(FAILED, "This is not your server!", new JsonObject());
         }
     }
+
+    /**
+     * delete whole category
+     * WHO CAN DO? -> ONLY OWNER
+     *
+     * @param userKey key of the user
+     * @return json list of all server
+     */
+    @DeleteMapping("/servers/{serverId}/categories/{categoryId}/channels/{channelId}")
+    public @ResponseBody
+    ResponseMessage deleteChannel(@RequestHeader(value = USER_KEY) String userKey, @PathVariable("serverId") String serverId, @PathVariable("categoryId") String categoryId, @PathVariable("channelId") String channelId) {
+        User currentUser = userRepository.findByUserKey(userKey);
+
+        Server currentServer = serverRepository.findById(serverId).get();
+        Categories currentCategory = categoriesRepository.findById(categoryId).get();
+        Channels currentChannel = channelsRepository.findById(channelId).get();
+
+        if (currentServer.getOwner().equals(currentUser.getId())) {
+
+            // delete channel
+            channelsRepository.delete(currentChannel);
+
+            // send webSocket message
+            systemWebSocketHandler.sendChannelDeleted(currentServer, currentCategory, currentChannel, currentUser);
+
+            // return json
+            JsonObject channelData = new JsonObject();
+            channelData.put("id", currentChannel.getId());
+            channelData.put("name", currentChannel.getName());
+            channelData.put("type", currentChannel.getType());
+            channelData.put("privileged", currentChannel.isPrivileged());
+            channelData.put("category", currentCategory.getId());
+
+            // add privileged member
+            JsonArray jsonArrayPrivilegedMember = new JsonArray();
+            for (User user : currentChannel.getPrivilegedMember()) {
+                jsonArrayPrivilegedMember.add(user.getId());
+            }
+            channelData.put("members", jsonArrayPrivilegedMember);
+
+            channelData.put("audioMembers", new JsonArray());
+
+            return new ResponseMessage(SUCCESS, "", channelData);
+        } else {
+            return new ResponseMessage(FAILED, "This is not your server!", new JsonObject());
+        }
+    }
 }

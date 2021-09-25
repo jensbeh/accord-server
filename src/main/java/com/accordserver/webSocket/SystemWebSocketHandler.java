@@ -365,6 +365,32 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
             }
         }
 
-        System.out.println("deleted Server: " + deletedCategory.getName() + " " + deletedCategory.getId());
+        System.out.println("deleted Category: " + deletedCategory.getName() + " " + deletedCategory.getId());
+    }
+
+    public void sendChannelDeleted(Server currentServer, Categories currentCategory, Channels deletedChannel, User currentUser) {
+        // broadcast channelDeleted message to all connections / clients
+
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.put("action", "channelDeleted");
+
+        JsonObject deletedChannelData = new JsonObject();
+        deletedChannelData.put("id", deletedChannel.getId());
+        deletedChannelData.put("name", deletedChannel.getName());
+        deletedChannelData.put("category", currentCategory.getId());
+        deletedChannelData.put("server", currentServer.getId());
+
+        jsonObject.put("data", deletedChannelData);
+
+        // send deletedChannelData to all members in this server with jsonObject
+        for (Map.Entry<String, WebSocketSession> userKeySessionEntry : serverIdUserKeysWebSocketSessions.get(currentServer.getId()).entrySet()) {
+            try {
+                userKeySessionEntry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        System.out.println("deleted Channel: " + deletedChannel.getName() + " " + deletedChannel.getId());
     }
 }

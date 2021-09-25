@@ -161,7 +161,7 @@ public class CategoriesController {
 
         if (currentServer.getOwner().equals(currentUser.getId())) {
 
-            // delete server
+            // delete category
             categoriesRepository.delete(currentCategory);
 
             // send webSocket message

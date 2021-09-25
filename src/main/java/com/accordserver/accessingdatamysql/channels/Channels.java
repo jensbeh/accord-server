@@ -35,6 +35,7 @@ public class Channels {
     private Categories category;
 
     // privileged Member
+    @LazyCollection(LazyCollectionOption.FALSE)
     @ManyToMany(mappedBy = "privilegedChannel")
     private List<User> privilegedMember = new ArrayList<>();
 
