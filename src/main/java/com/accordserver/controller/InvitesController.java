@@ -171,4 +171,39 @@ public class InvitesController {
             return new ResponseMessage(FAILED, "Wrong username and/or password!", new JsonObject());
         }
     }
+
+    /**
+     * delete invitation
+     * WHO CAN DO? -> ONLY OWNER
+     *
+     * @param userKey key of the user
+     * @return json list of all server
+     */
+    @DeleteMapping("/servers/{serverId}/invites/{inviteId}")
+    public @ResponseBody
+    ResponseMessage deleteInvitation(@RequestHeader(value = USER_KEY) String userKey, @PathVariable("serverId") String serverId, @PathVariable("inviteId") String inviteId) {
+        User currentUser = userRepository.findByUserKey(userKey);
+
+        Server currentServer = serverRepository.findById(serverId).get();
+        Invites currentInvitation = invitesRepository.findById(inviteId).get();
+
+        if (currentServer.getOwner().equals(currentUser.getId())) {
+
+            // delete invitation
+            invitesRepository.delete(currentInvitation);
+
+            // return json
+            JsonObject invitationData = new JsonObject();
+            invitationData.put("id", currentInvitation.getId());
+            invitationData.put("link", currentInvitation.getLink());
+            invitationData.put("type", currentInvitation.getType());
+            invitationData.put("max", currentInvitation.getMax());
+            invitationData.put("current", currentInvitation.getCurrent());
+            invitationData.put("server", currentServer.getId());
+
+            return new ResponseMessage(SUCCESS, "", invitationData);
+        } else {
+            return new ResponseMessage(FAILED, "This is not your server!", new JsonObject());
+        }
+    }
 }
