@@ -232,4 +232,35 @@ public class ChannelsController {
             return new ResponseMessage(FAILED, "This is not your server!", new JsonObject());
         }
     }
+
+    /**
+     * joins an existing audio channel
+     * WHO CAN DO? -> ALL SERVER USER
+     *
+     * @param userKey  key of the user
+     * @param serverId id of the server where the channel should be added
+     * @return rest answer
+     */
+    @PostMapping("/servers/{serverId}/categories/{categoryId}/channels/{channelId}/join")
+    public @ResponseBody
+    ResponseMessage joinAudioChannel(@RequestHeader(value = USER_KEY) String userKey, @PathVariable("serverId") String serverId, @PathVariable("categoryId") String categoryId, @PathVariable("channelId") String channelId) {
+        User currentUser = userRepository.findByUserKey(userKey);
+        Server currentServer = serverRepository.findById(serverId).get();
+        Categories currentCategory= categoriesRepository.findById(categoryId).get();
+        Channels currentChannel = channelsRepository.findById(channelId).get();
+
+        // join audio channel and save it
+
+        currentChannel.setAudioMember(currentUser);
+        channelsRepository.save(currentChannel);
+
+        // send webSocket message
+        systemWebSocketHandler.sendAudioChannelJoined(currentServer, currentCategory, currentChannel, currentUser);
+
+        JsonObject responseData = new JsonObject();
+        responseData.put("id", currentChannel.getId());
+
+        return new ResponseMessage(SUCCESS, "", responseData);
+    }
 }
+

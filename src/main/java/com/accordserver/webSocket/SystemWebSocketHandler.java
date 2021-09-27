@@ -474,4 +474,31 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
 
         System.out.println("deleted Message: " + deletedMessage.getContent() + " " + deletedMessage.getFromUser() + " " + deletedMessage.getId());
     }
+
+    @Bean
+    public void sendAudioChannelJoined(Server currentServer, Categories currentCategory, Channels currentChannel, User currentUser) {
+        // broadcast audioJoined message to all connections / clients
+
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.put("action", "audioJoined");
+
+        JsonObject joinedAudioChannelData = new JsonObject();
+        joinedAudioChannelData.put("id", currentUser.getId());
+        joinedAudioChannelData.put("channel", currentChannel.getId());
+        joinedAudioChannelData.put("category", currentCategory.getId());
+        joinedAudioChannelData.put("server", currentServer.getId());
+
+        jsonObject.put("data", joinedAudioChannelData);
+
+        // send joinedAudioChannelData to all members in this server with jsonObject
+        for (Map.Entry<String, WebSocketSession> userKeySessionEntry : serverIdUserKeysWebSocketSessions.get(currentServer.getId()).entrySet()) {
+            try {
+                userKeySessionEntry.getValue().sendMessage(new TextMessage(jsonObject.toJson()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        System.out.println("user joined audio channel: " + currentUser.getName() + " " + currentUser.getId() + " channel: " + currentChannel.getName() + " " + currentChannel.getId());
+    }
 }

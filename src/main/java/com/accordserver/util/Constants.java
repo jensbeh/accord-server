@@ -18,4 +18,7 @@ public class Constants {
     // WEBSOCKETS ENDPOINTS
     public static final String SYSTEM_ENDPOINT = "/system";
     public static final String PRIVATE_SERVER_CHAT_ENDPOINT = "/chat";
+
+    // UDP PORT
+    public static final int UDP_PORT = 33100;
 }
