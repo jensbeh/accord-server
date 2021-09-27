@@ -8,9 +8,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static com.accordserver.util.Constants.UDP_PORT;
 
@@ -18,6 +16,8 @@ public class UdpServer implements Runnable {
     private boolean running = false;
 
     private Thread run, send, receive;
+
+    private List<String> connectedUserNames = new ArrayList<>();
 
     private DatagramSocket socket;
     private Map<String, Map<String, ServerClient>> channelClientsMap = new HashMap<>();
@@ -64,9 +64,11 @@ public class UdpServer implements Runnable {
                     String channelId = jsonData.getString("channel");
                     String userName = jsonData.getString("name");
 
-                    checkForNewClientAndChannel(channelId, userName, packet);
+                    if (connectedUserNames.contains(userName)) {
+                        checkForNewClientAndChannel(channelId, userName, packet);
 
-                    sendToChannel(channelId, informationDataBytes);
+                        sendToChannel(channelId, informationDataBytes);
+                    }
                 }
             }
         };
@@ -76,7 +78,7 @@ public class UdpServer implements Runnable {
     /**
      * Method to route the udp packet to all channel members
      *
-     * @param channelId id of the channel where the audio packet should be route to
+     * @param channelId            id of the channel where the audio packet should be route to
      * @param informationDataBytes udp packet which should be route
      */
     private void sendToChannel(String channelId, byte[] informationDataBytes) {
@@ -88,9 +90,9 @@ public class UdpServer implements Runnable {
     /**
      * Method to start a new Thread where the udp data is sent to client
      *
-     * @param data udp packet data to sent
+     * @param data    udp packet data to sent
      * @param address address of the client where to send
-     * @param port port of the client where to send
+     * @param port    port of the client where to send
      */
     private void send(byte[] data, InetAddress address, int port) {
         send = new Thread("Send") {
@@ -111,8 +113,8 @@ public class UdpServer implements Runnable {
      * If not, there will be created one with all information.
      *
      * @param channelId id of the channel where the audio packet should be route to
-     * @param userName username of the user who sends the packet
-     * @param packet packet which the user sends to the server / channel
+     * @param userName  username of the user who sends the packet
+     * @param packet    packet which the user sends to the server / channel
      */
     private void checkForNewClientAndChannel(String channelId, String userName, DatagramPacket packet) {
         if (channelClientsMap.containsKey(channelId)) {
@@ -128,9 +130,20 @@ public class UdpServer implements Runnable {
 
     /**
      * Removes the client from the list (no more data is sent to him) and delete the channel if he is the last user in this channel.
+     *
+     * @param userName name of the new connected user to add to the list
      */
     @Bean
-    public void removeUdpClient() {
+    public void addUdpClient(String userName) {
+        connectedUserNames.add(userName);
+    }
 
+    /**
+     * Removes the client from the list (no more data is sent to him) and delete the channel if he is the last user in this channel.
+     */
+    @Bean
+    public void removeUdpClient(String userName, String channelId) {
+        connectedUserNames.remove(userName);
+        channelClientsMap.get(channelId).remove(userName);
     }
 }

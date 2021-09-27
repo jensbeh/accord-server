@@ -9,6 +9,7 @@ import com.accordserver.accessingdatamysql.server.Server;
 import com.accordserver.accessingdatamysql.server.ServerRepository;
 import com.accordserver.accessingdatamysql.user.User;
 import com.accordserver.accessingdatamysql.user.UserRepository;
+import com.accordserver.udpserver.UdpServer;
 import com.accordserver.webSocket.SystemWebSocketHandler;
 import com.github.cliftonlabs.json_simple.JsonArray;
 import com.github.cliftonlabs.json_simple.JsonObject;
@@ -38,6 +39,8 @@ public class ChannelsController {
 
     @Autowired
     private SystemWebSocketHandler systemWebSocketHandler;
+
+    private UdpServer udpServer;
 
     /**
      * creates a new channel
@@ -246,11 +249,10 @@ public class ChannelsController {
     ResponseMessage joinAudioChannel(@RequestHeader(value = USER_KEY) String userKey, @PathVariable("serverId") String serverId, @PathVariable("categoryId") String categoryId, @PathVariable("channelId") String channelId) {
         User currentUser = userRepository.findByUserKey(userKey);
         Server currentServer = serverRepository.findById(serverId).get();
-        Categories currentCategory= categoriesRepository.findById(categoryId).get();
+        Categories currentCategory = categoriesRepository.findById(categoryId).get();
         Channels currentChannel = channelsRepository.findById(channelId).get();
 
         // join audio channel and save it
-
         currentChannel.setAudioMember(currentUser);
         channelsRepository.save(currentChannel);
 
@@ -260,7 +262,47 @@ public class ChannelsController {
         JsonObject responseData = new JsonObject();
         responseData.put("id", currentChannel.getId());
 
+        // add user to connected user in udp-server
+        udpServer.addUdpClient(currentUser.getName());
+
         return new ResponseMessage(SUCCESS, "", responseData);
+    }
+
+    /**
+     * leaves an existing audio channel
+     * WHO CAN DO? -> ALL SERVER USER
+     *
+     * @param userKey  key of the user
+     * @param serverId id of the server where the channel should be added
+     * @return rest answer
+     */
+    @PostMapping("/servers/{serverId}/categories/{categoryId}/channels/{channelId}/leave")
+    public @ResponseBody
+    ResponseMessage leaveAudioChannel(@RequestHeader(value = USER_KEY) String userKey, @PathVariable("serverId") String serverId, @PathVariable("categoryId") String categoryId, @PathVariable("channelId") String channelId) {
+        User currentUser = userRepository.findByUserKey(userKey);
+        Server currentServer = serverRepository.findById(serverId).get();
+        Categories currentCategory = categoriesRepository.findById(categoryId).get();
+        Channels currentChannel = channelsRepository.findById(channelId).get();
+
+        // leave audio channel and save it
+
+        currentChannel.removeAudioMember(currentUser);
+        channelsRepository.save(currentChannel);
+
+        // send webSocket message
+        systemWebSocketHandler.sendAudioChannelLeft(currentServer, currentCategory, currentChannel, currentUser);
+
+        JsonObject responseData = new JsonObject();
+        responseData.put("id", currentChannel.getId());
+
+        // removes user from connected user in udp-server
+        udpServer.removeUdpClient(currentUser.getName(), currentChannel.getId());
+
+        return new ResponseMessage(SUCCESS, "", responseData);
+    }
+
+    public void setUdpServer(UdpServer udpServer) {
+        this.udpServer = udpServer;
     }
 }
 

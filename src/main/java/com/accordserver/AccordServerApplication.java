@@ -2,6 +2,7 @@ package com.accordserver;
 
 import com.accordserver.accessingdatamysql.user.User;
 import com.accordserver.accessingdatamysql.user.UserRepository;
+import com.accordserver.controller.ChannelsController;
 import com.accordserver.udpserver.UdpServer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -24,8 +25,10 @@ public class AccordServerApplication {
             }
         }
 
-        // start the udpServer to route the audio packets
+        // start the udpServer to route the audio packets AND set the udpServer to ChannelController to manage userArrived/Left
         UdpServer udpServer = new UdpServer();
+        ChannelsController channelsController = configurableApplicationContext.getBean(ChannelsController.class);
+        channelsController.setUdpServer(udpServer);
 
         System.out.println("Accord-Server started!");
     }

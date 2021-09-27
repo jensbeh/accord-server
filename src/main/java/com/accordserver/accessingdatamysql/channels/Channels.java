@@ -156,4 +156,8 @@ public class Channels {
     public void removeMessage(Messages currentMessage) {
         this.messages.remove(currentMessage);
     }
+
+    public void removeAudioMember(User user) {
+        this.audioMember.remove(user);
+    }
 }
