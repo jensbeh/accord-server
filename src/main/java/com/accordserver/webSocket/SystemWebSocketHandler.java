@@ -56,11 +56,10 @@ public class SystemWebSocketHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
 //        System.out.println("E: SystemWebSocketHandler: " + message + " --- " + session.getUri().getQuery());
         if (!message.getPayload().equals("noop")) {
-
-        }
-        // broadcast all messages to all connections / clients
-        for (WebSocketSession webSocketSession : systemWebSocketSessions) {
-            webSocketSession.sendMessage(message);
+            // broadcast all messages to all connections / clients
+            for (WebSocketSession webSocketSession : systemWebSocketSessions) {
+                webSocketSession.sendMessage(message);
+            }
         }
     }
 

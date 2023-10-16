@@ -15,6 +15,7 @@ import com.github.cliftonlabs.json_simple.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -96,7 +97,11 @@ public class ServerController {
         responseServerData.put("id", currentServer.getId());
         responseServerData.put("name", currentServer.getName());
         responseServerData.put("owner", currentServer.getOwner());
-        responseServerData.put("categories", new JsonArray().addAll(currentServer.getCategories()));
+        List categoryIds = new ArrayList();
+        for (Categories category : currentServer.getCategories()) {
+            categoryIds.add(category.getId());
+        }
+        responseServerData.put("categories", categoryIds);
 
         // add members
         JsonArray jsonArray = new JsonArray();
