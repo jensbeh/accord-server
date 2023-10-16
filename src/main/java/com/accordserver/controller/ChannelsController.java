@@ -118,7 +118,7 @@ public class ChannelsController {
             // add audio member
             JsonArray jsonArrayAudioMember = new JsonArray();
             for (User user : channel.getAudioMember()) {
-                jsonArrayAudioMember.add(user.getId());
+                jsonArrayAudioMember.add("user.getId()");
             }
             responseChannelData.put("audioMembers", jsonArrayAudioMember);
 
@@ -305,4 +305,3 @@ public class ChannelsController {
         this.udpServer = udpServer;
     }
 }
-
