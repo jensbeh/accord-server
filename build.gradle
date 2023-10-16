@@ -27,6 +27,10 @@ dependencies {
 
 }
 
+bootJar {
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+}
+
 test {
     useJUnitPlatform()
 }

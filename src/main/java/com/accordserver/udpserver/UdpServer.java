@@ -1,5 +1,6 @@
 package com.accordserver.udpserver;
 
+import com.accordserver.ServerWindow;
 import org.json.JSONObject;
 import org.springframework.context.annotation.Bean;
 
@@ -38,6 +39,8 @@ public class UdpServer implements Runnable {
     public void run() {
         running = true;
         System.out.println("UdpServer started on port " + UDP_PORT);
+        ServerWindow.getInstance().printToConsole("UdpServer started on port " + UDP_PORT);
+
         receive();
     }
 
